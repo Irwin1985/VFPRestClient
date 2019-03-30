@@ -1,10 +1,10 @@
 *---------------------------------------------------------------------------------------------------------------*
 *
-* @title:		Librería VFPRestClient
-* @description:	Librería 100% desarrollada en Visual FoxPro 9.0 para la comunicación via REST con servicios web.
+* @title:		LibrerÃ­a VFPRestClient
+* @description:	LibrerÃ­a 100% desarrollada en Visual FoxPro 9.0 para la comunicaciÃ³n via REST con servicios web.
 *
 * @version:		1.2 (beta)
-* @author:		Irwin Rodríguez
+* @author:		Irwin RodrÃ­guez
 * @email:		rodriguez.irwin@gmail.com
 * @license:		MIT
 *
@@ -24,15 +24,15 @@ DEFINE CLASS VFPRestClient AS CUSTOM
 	LastUpdate		= ""
 	Author			= ""
 	Email			= ""
-	LastErrorText 	= ""
-	CONTENT_TYPE	= "Content-Type"
-	APPICATION_JSON	= "application/json"
+	LastErrorText 		= ""
+	CONTENT_TYPE		= "Content-Type"
+	APPICATION_JSON		= "application/json"
 	Response		= ""
 	
 	*-- Verb List
-	GET				= "GET"
+	GET			= "GET"
 	POST			= "POST"
-	PUT				= "PUT"
+	PUT			= "PUT"
 	PATCH			= "PATCH"
 	DELETE			= "DELETE"
 	COPY			= "COPY"
@@ -47,11 +47,11 @@ DEFINE CLASS VFPRestClient AS CUSTOM
 	VIEW			= "VIEW"
 	
 	*-- Set default timeouts
-	ResolveTimeOut	= 5						&& The value is applied to mapping hot names to IP addresses.
-	ConnectTimeOut	= 60					&& The value is applied for establishing a communication socket with the target server.
-	SendTimeOut		= 30					&& The value applies to sending an individual packet of request data on the communication socket to the target server.
-	receiveTimeOut	= 30					&& The value applies to receiving a packet of response data from the target server.
-	waitTimeOut		= 5						&& The value applies to analyze the readyState change when communitacion socket has established.
+	ResolveTimeOut	= 5	&& The value is applied to mapping hot names to IP addresses.
+	ConnectTimeOut	= 60	&& The value is applied for establishing a communication socket with the target server.
+	SendTimeOut	= 30	&& The value applies to sending an individual packet of request data on the communication socket to the target server.
+	receiveTimeOut	= 30	&& The value applies to receiving a packet of response data from the target server.
+	waitTimeOut	= 5	&& The value applies to analyze the readyState change when communitacion socket has established.
 
 	PROCEDURE INIT
 		*-- Constants Definitions
@@ -66,9 +66,9 @@ DEFINE CLASS VFPRestClient AS CUSTOM
 		THIS.lValidCall = .T.
 		THIS.LastUpdate	= "30/03/2019 18:18:54"
 		THIS.lValidCall = .T.
-		THIS.Author		= "Irwin Rodríguez"
+		THIS.Author	= "Irwin RodrÃ­guez"
 		THIS.lValidCall = .T.
-		THIS.Email		= "rodriguez.irwin@gmail.com"
+		THIS.Email	= "rodriguez.irwin@gmail.com"
 		THIS.__clean_request()
 		THIS.oXMLHTTP	= .NULL.
 	ENDPROC
@@ -107,7 +107,7 @@ DEFINE CLASS VFPRestClient AS CUSTOM
 		RETURN lCreated
 	ENDPROC
 
-	PROCEDURE addRequest(tcVerb AS STRING, tcURL AS STRING) HELPSTRING "Carga una petición al objeto oRest."
+	PROCEDURE addRequest(tcVerb AS STRING, tcURL AS STRING) HELPSTRING "Carga una peticiÃ³n al objeto oRest."
 		IF EMPTY(tcVerb) .OR. EMPTY(tcURL)
 			THIS.lValidCall = .T.
 			THIS.__setLastErrorText("Invalid params")
@@ -140,7 +140,7 @@ DEFINE CLASS VFPRestClient AS CUSTOM
 		THIS.ContentValue 	= tcValue
 	ENDPROC
 
-	PROCEDURE addRequestBody(tcRequestBody AS STRING) "Agrega un contenido en formato JSON al cuerpo de la petición."
+	PROCEDURE addRequestBody(tcRequestBody AS STRING) "Agrega un contenido en formato JSON al cuerpo de la peticiÃ³n."
 		IF EMPTY(tcRequestBody)
 			THIS.lValidCall = .T.
 			THIS.__setLastErrorText("Invalid request format")
@@ -152,8 +152,7 @@ DEFINE CLASS VFPRestClient AS CUSTOM
 		THIS.requestBody 	= tcRequestBody
 	ENDPROC
 
-	PROCEDURE Send HELPSTRING "Envía la petición al servidor"
-		*SET STEP ON
+	FUNCTION Send HELPSTRING "EnvÃ­a la peticiÃ³n al servidor"
 *-- Validate Request Params
 		LOCAL cMsg as string, bSuccess as boolean
 		cMsg 		= ""
@@ -232,6 +231,7 @@ DEFINE CLASS VFPRestClient AS CUSTOM
 		
 		THIS.oXMLHTTP = .NULL.
 		RETURN bSuccess
+	ENDFUNC
 	*-- Getters and Setters
 	HIDDEN PROCEDURE __setLastErrorText
 		LPARAMETERS tcErrorText
