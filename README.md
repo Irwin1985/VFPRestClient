@@ -42,7 +42,7 @@
  SET PROCEDURE TO "VFPRestClient.prg" ADDITIVE
  loREST = NEWOBJECT("Rest", "VFPRestClient.prg")
  
- * Get planet with ID 1 from **https://swapi.co**
+ * Get planet with ID 1 from https://swapi.co
  loRest.addRequest(loRest.GET, "https://swapi.co/api/planets/1/")
  
  * Don't forget check the LastErrorText
@@ -55,9 +55,9 @@
  
  * Send the request
  IF loRest.Send()
-  MESSAGEBOX(loRest.Response, 64, "Success")
+ 	MESSAGEBOX(loRest.Response, 64, "Success")
  ELSE &&loRest.Send()
-  MESSAGEBOX(loRest.Response, 48, "Something went wrong")
+ 	MESSAGEBOX(loRest.Response, 48, "Something went wrong")
  ENDIF &&loRest.Send()
  
 RELEASE loRest
