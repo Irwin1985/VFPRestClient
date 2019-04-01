@@ -9,7 +9,7 @@
 * @license:		MIT
 *
 *---------------------------------------------------------------------------------------------------------------*
-DEFINE CLASS VFPRestClient AS CUSTOM
+DEFINE CLASS Rest AS CUSTOM
 	HIDDEN lValidCall
 	HIDDEN oXMLHTTP
 
