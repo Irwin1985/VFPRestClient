@@ -210,7 +210,10 @@ DEFINE CLASS Rest AS CUSTOM
 			THIS.waitTimeOut = 5
 		ELSE &&EMPTY(THIS.waitTimeOut)
 		ENDIF &&EMPTY(THIS.waitTimeOut)
-			
+		
+		*-- Send the Request
+		THIS.oXMLHTTP.Send()
+		
 		nSeg = SECONDS() + THIS.waitTimeOut
 		DO WHILE SECONDS() <= nSeg
 			IF THIS.oXMLHTTP.readyState <> HTTP_OPEN
