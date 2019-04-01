@@ -77,7 +77,7 @@ DEFINE CLASS Rest AS CUSTOM
 		LOCAL lCreated as boolean
 		lCreated = .F.
 		TRY
-			THIS.oXMLHTTP	= CREATEOBJECT("MSXML2.ServerXMLHTTP.6.0")
+			THIS.oXMLHTTP	= CREATEOBJECT("Msxml2.ServerXMLHTTP.6.0")
 			lCreated = .T.
 		CATCH
 		ENDTRY
