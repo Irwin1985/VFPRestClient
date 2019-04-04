@@ -11,6 +11,8 @@
 * -------------------------------------------------------------------------
 * Version Log:
 *
+* Release 2019-04-04	v.1.4		- Función para detectar la conexión a internet.
+*
 * Release 2019-04-02	v.1.3		- Función para escapar los caracteres especiales.
 *
 * Release 2019-03-30	v.1.2		- Liberación formal en https://github.com/Irwin1985/VFPRestClient
@@ -73,9 +75,9 @@ DEFINE CLASS REST AS CUSTOM
 		#DEFINE HTTP_OPEN             1
 
 		THIS.lValidCall = .T.
-		THIS.VERSION	= "1.3 (beta)"
+		THIS.VERSION	= "1.4 (beta)"
 		THIS.lValidCall = .T.
-		THIS.LastUpdate	= "2019-04-02 08:00:51 PM"
+		THIS.LastUpdate	= "2019-04-04 17:37:51"
 		THIS.lValidCall = .T.
 		THIS.Author	= "Irwin Rodríguez"
 		THIS.lValidCall = .T.
@@ -213,8 +215,15 @@ DEFINE CLASS REST AS CUSTOM
 		ELSE &&NOT EMPTY(THIS.ContentType) .AND. NOT EMPTY(THIS.ContentValue)
 		ENDIF &&NOT EMPTY(THIS.ContentType) .AND. NOT EMPTY(THIS.ContentValue)
 
+		IF !THIS.__isConnected()
+			THIS.lValidCall = .T.
+			THIS.__setLastErrorText("there is not an active internet connection.")
+			RETURN FALSE
+		ELSE &&!THIS.__isConnected()
+		ENDIF &&!THIS.__isConnected()
+					
 *-- Send the Request
-		THIS.oXMLHTTP.SEND()
+		THIS.oXMLHTTP.SEND(THIS.REQUESTBODY)
 
 *-- Loop until readyState change or timeouts dies.
 		IF EMPTY(THIS.waitTimeOut)
@@ -243,6 +252,16 @@ DEFINE CLASS REST AS CUSTOM
 
 		THIS.oXMLHTTP = .NULL.
 	ENDFUNC
+*-- FUNCTION __isConnected
+	HIDDEN FUNCTION __isConnected
+		DECLARE INTEGER InternetGetConnectedState IN WinInet INTEGER @lpdwFlags, INTEGER dwReserved
+		LOCAL lnFlags, lnReserved, lnSuccess
+		lnFlags		= 0
+		lnReserved	= 0
+		lnSuccess	= InternetGetConnectedState(@lnFlags,lnReserved)
+		CLEAR DLLS
+		RETURN (lnSuccess=1)
+	ENDFUNC	
 *-- Getters and Setters
 	HIDDEN PROCEDURE __setLastErrorText
 		LPARAMETERS tcErrorText
@@ -253,11 +272,23 @@ DEFINE CLASS REST AS CUSTOM
 			THIS.LastErrorText = ""
 		ENDIF &&NOT EMPTY(tcErrorText)
 	ENDPROC
-
+	*-- PROCEDURE __clean_response
 	HIDDEN PROCEDURE __clean_response
 *-- Clean Response
-		THIS.lValidCall 		= .T.
-		THIS.RESPONSE 			= ""
+		THIS.lValidCall 	= .T.
+		THIS.RESPONSE 		= ""
+		
+		THIS.lValidCall 	= .T.
+		THIS.STATUS			= 0
+
+		THIS.lValidCall 	= .T.
+		THIS.STATUSTEXT		= ""
+
+		THIS.lValidCall 	= .T.
+		THIS.RESPONSETEXT	= ""
+
+		THIS.lValidCall 	= .T.
+		THIS.READYSTATE		= 0		
 	ENDPROC
 
 	HIDDEN PROCEDURE __clean_request
