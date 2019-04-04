@@ -3,7 +3,7 @@
 * @title:		Librería VFPRestClient
 * @description:	Librería 100% desarrollada en Visual FoxPro 9.0 para la comunicación via REST con servicios web.
 *
-* @version:		1.3 (beta)
+* @version:		1.4 (beta)
 * @author:		Irwin Rodríguez
 * @email:		rodriguez.irwin@gmail.com
 * @license:		MIT
