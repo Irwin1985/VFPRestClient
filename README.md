@@ -9,12 +9,17 @@
 
 ### Latest Release
 
-**[VFPRestClient](/README.md)** - v.1.2 (beta) - Release 2019-03-30 18:18:54
+**[VFPRestClient](/README.md)** - v.1.5 (beta) - Release 2019-04-09 14:17:51
 
 <hr>
 
 ## Properties
 * ![](images/prop.gif) **LastErrorText:** Stores the possible error generated in the current sentence.
+* ![](images/prop.gif) **Response:** Stores the same content of **ResponseText** property.
+* ![](images/prop.gif) **ResponseText:** Server's response. Inherited property from **XMLHTTP Object**.
+* ![](images/prop.gif) **Status:** holds the HTTP Status Code. Inherited property from **XMLHTTP Object**.
+* ![](images/prop.gif) **StatusText:** holds the HTTP Status Text. Inherited property from **XMLHTTP Object**.
+* ![](images/prop.gif) **ReadyState:** current object state. Inherited property from **XMLHTTP Object**.
 
 ## Methods
 
