@@ -3,13 +3,15 @@
 * @title:		Librería VFPRestClient
 * @description:	Librería 100% desarrollada en Visual FoxPro 9.0 para la comunicación via REST con servicios web.
 *
-* @version:		1.4 (beta)
+* @version:		1.5 (beta)
 * @author:		Irwin Rodríguez
 * @email:		rodriguez.irwin@gmail.com
 * @license:		MIT
 *
 * -------------------------------------------------------------------------
 * Version Log:
+*
+* Release 2019-04-09	v.1.5		- Control de excepción en métodos Open y Send "Reportado por: Francisco ('informatica-apliges.com')"
 *
 * Release 2019-04-04	v.1.4		- Función para detectar la conexión a internet.
 *
@@ -29,35 +31,35 @@ DEFINE CLASS REST AS CUSTOM
 	HIDDEN ContentType
 	HIDDEN ContentValue
 
-	VERSION			= ""
-	LastUpdate		= ""
-	Author			= ""
-	Email			= ""
+	VERSION		= ""
+	LastUpdate	= ""
+	Author		= ""
+	Email		= ""
 	LastErrorText 	= ""
 	CONTENT_TYPE	= "Content-Type"
 	APPICATION_JSON	= "application/json"
-	RESPONSE		= ""
-	STATUS			= 0
-	STATUSTEXT		= ""
+	RESPONSE	= ""
+	STATUS		= 0
+	STATUSTEXT	= ""
 	RESPONSETEXT	= ""
-	READYSTATE		= 0
+	READYSTATE	= 0
 
 *-- Verb List
-	GET				= "GET"
-	POST			= "POST"
-	PUT				= "PUT"
-	PATCH			= "PATCH"
-	DELETE			= "DELETE"
-	COPY			= "COPY"
-	HEAD			= "HEAD"
-	OPTIONS			= "OPTIONS"
-	LINK			= "LINK"
-	UNLINK			= "UNLINK"
-	PURGE			= "PURGE"
-	LOCK			= "LOCK"
-	UNLOCK			= "UNLOCK"
-	PROPFIND		= "PROPFIND"
-	VIEW			= "VIEW"
+	GET		= "GET"
+	POST		= "POST"
+	PUT		= "PUT"
+	PATCH		= "PATCH"
+	DELETE		= "DELETE"
+	COPY		= "COPY"
+	HEAD		= "HEAD"
+	OPTIONS		= "OPTIONS"
+	LINK		= "LINK"
+	UNLINK		= "UNLINK"
+	PURGE		= "PURGE"
+	LOCK		= "LOCK"
+	UNLOCK		= "UNLOCK"
+	PROPFIND	= "PROPFIND"
+	VIEW		= "VIEW"
 
 *-- Set default timeouts
 	ResolveTimeOut	= 5	&& The value is applied to mapping hot names to IP addresses.
@@ -68,16 +70,16 @@ DEFINE CLASS REST AS CUSTOM
 
 	PROCEDURE INIT
 *-- Constants Definitions
-		#DEFINE TRUE .T.
-		#DEFINE FALSE .F.
-		#DEFINE HTTP_STATUS_OK        200
-		#DEFINE HTTP_COMPLETED        4
-		#DEFINE HTTP_OPEN             1
+		#DEFINE TRUE 		.T.
+		#DEFINE FALSE 		.F.
+		#DEFINE HTTP_STATUS_OK  200
+		#DEFINE HTTP_COMPLETED  4
+		#DEFINE HTTP_OPEN       1
 
 		THIS.lValidCall = .T.
-		THIS.VERSION	= "1.4 (beta)"
+		THIS.VERSION	= "1.5 (beta)"
 		THIS.lValidCall = .T.
-		THIS.LastUpdate	= "2019-04-04 17:37:51"
+		THIS.LastUpdate	= "2019-04-09 14:17:51"
 		THIS.lValidCall = .T.
 		THIS.Author	= "Irwin Rodríguez"
 		THIS.lValidCall = .T.
@@ -85,7 +87,7 @@ DEFINE CLASS REST AS CUSTOM
 		THIS.__clean_request()
 		THIS.oXMLHTTP	= .NULL.
 	ENDPROC
-
+	*-- HIDDEN PROCEDURE __create_object
 	HIDDEN PROCEDURE __create_object
 		LOCAL lCreated AS boolean
 		lCreated = .F.
@@ -119,22 +121,19 @@ DEFINE CLASS REST AS CUSTOM
 		ENDIF &&TYPE("THIS.oXMLHTTP") <> "O"
 		RETURN lCreated
 	ENDPROC
-
-	PROCEDURE addRequest(tcVerb AS STRING, tcURL AS STRING) HELPSTRING "Carga una petición al objeto oRest."
+	*-- PROCEDURE addRequest(tcVerb AS STRING, tcURL AS STRING)
+	PROCEDURE addRequest(tcVerb AS STRING, tcURL AS STRING) HELPSTRING "Carga una solicitud al objeto oRest."
 		IF EMPTY(tcVerb) .OR. EMPTY(tcURL)
 			THIS.lValidCall = .T.
 			THIS.__setLastErrorText("Invalid params")
 		ELSE &&EMPTY(tcVerb) .OR. EMPTY(tcURL)
 		ENDIF &&EMPTY(tcVerb) .OR. EMPTY(tcURL)
-
 *-- Add Verb/Method
 		THIS.lValidCall = .T.
-		THIS.VERB = tcVerb
-
+		THIS.VERB 	= tcVerb
 *-- Add URL
 		THIS.lValidCall = .T.
-		THIS.URL = tcURL
-
+		THIS.URL 	= tcURL
 	ENDPROC
 
 	PROCEDURE addHeader(tcHeader AS STRING, tcValue AS STRING)
@@ -143,17 +142,15 @@ DEFINE CLASS REST AS CUSTOM
 			THIS.__setLastErrorText("Invalid params")
 		ELSE &&EMPTY(tcVerb) OR EMPTY(tcURL)
 		ENDIF &&EMPTY(tcVerb) OR EMPTY(tcURL)
-
 *-- Add Header Content
 		THIS.lValidCall 	= .T.
 		THIS.ContentType 	= tcHeader
-
 *-- Add Header Value
 		THIS.lValidCall 	= .T.
 		THIS.ContentValue 	= tcValue
 	ENDPROC
-
-	PROCEDURE addRequestBody(tcRequestBody AS STRING) "Agrega un contenido en formato JSON al cuerpo de la petición."
+	*-- PROCEDURE addRequestBody(tcRequestBody AS STRING)
+	PROCEDURE addRequestBody(tcRequestBody AS STRING) "Agrega un contenido en formato JSON al cuerpo de la solicitud."
 		IF EMPTY(tcRequestBody)
 			THIS.lValidCall = .T.
 			THIS.__setLastErrorText("Invalid request format")
@@ -163,11 +160,11 @@ DEFINE CLASS REST AS CUSTOM
 		THIS.lValidCall 	= .T.
 		THIS.requestBody 	= tcRequestBody
 	ENDPROC
-
-	FUNCTION SEND HELPSTRING "Envía la petición al servidor"
+	*-- FUNCTION SEND
+	FUNCTION SEND HELPSTRING "Envia la solicitud al servidor"
 *-- Validate Request Params
-		LOCAL cMsg AS STRING
-		cMsg 		= ""
+		LOCAL cMsg AS STRING, lError as boolean
+		cMsg = ""
 		THIS.__clean_response()
 		IF EMPTY(THIS.VERB)
 			cMsg = "missing verb param"
@@ -200,8 +197,23 @@ DEFINE CLASS REST AS CUSTOM
 			THIS.oXMLHTTP.setTimeouts(THIS.ResolveTimeOut, THIS.CONNECTTIMEOUT, THIS.SendTimeOut, THIS.receiveTimeOut)
 		ELSE &&THIS.ResolveTimeOut > 0 .AND. THIS.ConnectTimeOut > 0 .AND. THIS.SendTimeOut > 0 .AND. THIS.receiveTimeOut > 0
 		ENDIF &&THIS.ResolveTimeOut > 0 .AND. THIS.ConnectTimeOut > 0 .AND. THIS.SendTimeOut > 0 .AND. THIS.receiveTimeOut > 0
-
-		THIS.oXMLHTTP.OPEN(THIS.VERB, THIS.URL)
+	
+		TRY
+			THIS.oXMLHTTP.OPEN(THIS.VERB, THIS.URL)
+		CATCH TO oErr
+			cMsg = ""
+			IF TYPE("oErr.Message") = "C"
+				cMsg = oErr.Message
+			ELSE &&TYPE("oErr.Message") = "C"				
+			ENDIF &&TYPE("oErr.Message") = "C"
+			THIS.lValidCall = .T.
+			THIS.__setLastErrorText("error related with send method: " + cMsg)
+			lError = .T.
+		ENDTRY
+		IF lError
+			RETURN FALSE
+		ELSE &&lError
+		ENDIF &&lError
 
 		IF THIS.oXMLHTTP.READYSTATE <> HTTP_OPEN
 			THIS.lValidCall = .T.
@@ -223,7 +235,23 @@ DEFINE CLASS REST AS CUSTOM
 		ENDIF &&!THIS.__isConnected()
 					
 *-- Send the Request
-		THIS.oXMLHTTP.SEND(THIS.REQUESTBODY)
+		
+		TRY
+			THIS.oXMLHTTP.SEND(THIS.REQUESTBODY)
+		CATCH TO oErr			
+			cMsg = ""
+			IF TYPE("oErr.Message") = "C"
+				cMsg = oErr.Message
+			ELSE &&TYPE("oErr.Message") = "C"				
+			ENDIF &&TYPE("oErr.Message") = "C"
+			THIS.lValidCall = .T.
+			THIS.__setLastErrorText("error related with send method: " + cMsg)
+			lError = .T.
+		ENDTRY
+		IF lError
+			RETURN FALSE
+		ELSE &&lError
+		ENDIF &&lError
 
 *-- Loop until readyState change or timeouts dies.
 		IF EMPTY(THIS.waitTimeOut)
