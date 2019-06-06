@@ -42,7 +42,7 @@
   
 ### Examples
 
-<pre>
+```xBase
  * Create Object
  SET PROCEDURE TO "VFPRestClient.prg" ADDITIVE
  loREST = NEWOBJECT("Rest", "VFPRestClient.prg")
@@ -66,4 +66,4 @@
  ENDIF &&loRest.Send()
  
 RELEASE loRest
-</pre>
+```
