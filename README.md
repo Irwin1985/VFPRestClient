@@ -40,7 +40,7 @@
 * ![](images/meth.gif) **Encode(vNewProp as variant):** Encode a JSON object into string.
   * **vNewProp:** represents any value type.
   
-### Examples
+### Basic Usage
 
 ```xBase
  // Create Object
