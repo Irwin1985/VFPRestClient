@@ -1,641 +1,572 @@
-*---------------------------------------------------------------------------------------------------------------*
-*
-* @title:		Librería VFPRestClient
-* @description:	Librería 100% desarrollada en Visual FoxPro 9.0 para la comunicación via REST con servicios web.
-*
-* @version:		1.5 (beta)
-* @author:		Irwin Rodríguez
-* @email:		rodriguez.irwin@gmail.com
-* @license:		MIT
-*
-* -------------------------------------------------------------------------
-* Version Log:
-*
-* Release 2019-04-09	v.1.5		- Control de excepción en métodos Open y Send "Reportado por: Francisco ('informatica-apliges.com')"
-*
-* Release 2019-04-04	v.1.4		- Función para detectar la conexión a internet.
-*
-* Release 2019-04-02	v.1.3		- Función para escapar los caracteres especiales.
-*
-* Release 2019-03-30	v.1.2		- Liberación formal en https://github.com/Irwin1985/VFPRestClient
-*---------------------------------------------------------------------------------------------------------------*
+*====================================================================
+* VFPRestClient
+*====================================================================
+Define Class Rest As Custom
+	Hidden lValidCall
+	Hidden oXMLHTTP
 
-DEFINE CLASS REST AS CUSTOM
-	HIDDEN lValidCall
-	HIDDEN oXMLHTTP
+	Hidden Verb
+	Hidden URL
+	Hidden requestBody
+	Hidden ContentType
+	Hidden ContentValue
 
-*-- Request Properties
-	HIDDEN VERB
-	HIDDEN URL
-	HIDDEN requestBody
-	HIDDEN ContentType
-	HIDDEN ContentValue
+	Version			= ''
+	LastUpdate		= ''
+	Author			= ''
+	Email			= ''
+	LastErrorText 	= ''
+	Content_Type	= 'Content-Type'
+	Appication_Json	= 'application/json'
+	Response		= ''
+	Status			= 0
+	StatusText		= ''
+	ResponseText	= ''
+	ReadyState		= 0
 
-	VERSION			= ""
-	LastUpdate		= ""
-	Author			= ""
-	Email			= ""
-	LastErrorText 	= ""
-	CONTENT_TYPE	= "Content-Type"
-	APPICATION_JSON	= "application/json"
-	RESPONSE		= ""
-	STATUS			= 0
-	STATUSTEXT		= ""
-	RESPONSETEXT	= ""
-	READYSTATE		= 0
+	Get				= 'GET'
+	POST			= 'POST'
+	PUT				= 'PUT'
+	PATCH			= 'PATCH'
+	Delete			= 'DELETE'
+	Copy			= 'COPY'
+	Head			= 'HEAD'
+	OPTIONS			= 'OPTIONS'
+	Link			= 'LINK'
+	UNLINK			= 'UNLINK'
+	PURGE			= 'PURGE'
+	Lock			= 'LOCK'
+	Unlock			= 'UNLOCK'
+	PROPFIND		= 'PROPFIND'
+	View			= 'VIEW'
 
-*-- Verb List
-	GET				= "GET"
-	POST			= "POST"
-	PUT				= "PUT"
-	PATCH			= "PATCH"
-	DELETE			= "DELETE"
-	COPY			= "COPY"
-	HEAD			= "HEAD"
-	OPTIONS			= "OPTIONS"
-	LINK			= "LINK"
-	UNLINK			= "UNLINK"
-	PURGE			= "PURGE"
-	LOCK			= "LOCK"
-	UNLOCK			= "UNLOCK"
-	PROPFIND		= "PROPFIND"
-	VIEW			= "VIEW"
+	#Define True 				.T.
+	#Define False 				.F.
+	#Define HTTP_STATUS_OK      200
+	#Define HTTP_COMPLETED      4
+	#Define HTTP_OPEN           1
 
-*-- Set default timeouts
-	ResolveTimeOut	= 5	&& The value is applied to mapping hot names to IP addresses.
-	CONNECTTIMEOUT	= 60	&& The value is applied for establishing a communication socket with the target server.
-	SendTimeOut	= 30	&& The value applies to sending an individual packet of request data on the communication socket to the target server.
+	ResolveTimeOut	= 5		&& The value is applied to mapping hot names to IP addresses.
+	ConnectTimeOut	= 60	&& The value is applied for establishing a communication socket with the target server.
+	SendTimeOut		= 30	&& The value applies to sending an individual packet of request data on the communication socket to the target server.
 	receiveTimeOut	= 30	&& The value applies to receiving a packet of response data from the target server.
-	waitTimeOut	= 5	&& The value applies to analyze the readyState change when communitacion socket has established.
+	waitTimeOut		= 5		&& The value applies to analyze the readyState change when communitacion socket has established.
 
-	PROCEDURE INIT
-*-- Constants Definitions
-		#DEFINE TRUE .T.
-		#DEFINE FALSE .F.
-		#DEFINE HTTP_STATUS_OK        200
-		#DEFINE HTTP_COMPLETED        4
-		#DEFINE HTTP_OPEN             1
+	Procedure Init
+		With This
+			.lValidCall = True
+			.Version	= '1.5 (beta)'
+			.lValidCall = True
+			.LastUpdate	= '2019-04-09 14:17:51'
+			.lValidCall = True
+			.Author		= 'Irwin Rodríguez'
+			.lValidCall = True
+			.Email		= 'rodriguez.irwin@gmail.com'
+			.__clean_request()
+			.oXMLHTTP	= .Null.
+		Endwith
+*====================================================================
 
-		THIS.lValidCall = .T.
-		THIS.VERSION	= "1.5 (beta)"
-		THIS.lValidCall = .T.
-		THIS.LastUpdate	= "2019-04-09 14:17:51"
-		THIS.lValidCall = .T.
-		THIS.Author	= "Irwin Rodríguez"
-		THIS.lValidCall = .T.
-		THIS.Email	= "rodriguez.irwin@gmail.com"
-		THIS.__clean_request()
-		THIS.oXMLHTTP	= .NULL.
-	ENDPROC
+	Hidden Procedure __create_object
+		Local lCreated As boolean
+		lCreated = False
+		Try
+			This.oXMLHTTP	= Createobject('Msxml2.ServerXMLHTTP.6.0')
+			lCreated = True
+		Catch
+		Endtry
+		If Not lCreated
+			Try
+				This.oXMLHTTP	= Createobject('MSXML2.ServerXMLHTTP')
+				lCreated = True
+			Catch
+			Endtry
+		Endif
+		If Not lCreated
+			Try
+				This.oXMLHTTP	= Createobject('Microsoft.XMLHTTP')
+				lCreated = True
+			Catch
+			Endtry
+		Endif
 
-	HIDDEN PROCEDURE __create_object
-		LOCAL lCreated AS boolean
-		lCreated = .F.
-		TRY
-			THIS.oXMLHTTP	= CREATEOBJECT("Msxml2.ServerXMLHTTP.6.0")
-			lCreated = .T.
-		CATCH
-		ENDTRY
-		IF NOT lCreated
-			TRY
-				THIS.oXMLHTTP	= CREATEOBJECT("MSXML2.ServerXMLHTTP")
-				lCreated = .T.
-			CATCH
-			ENDTRY
-		ELSE &&NOT lCreated
-		ENDIF &&NOT lCreated
-		IF NOT lCreated
-			TRY
-				THIS.oXMLHTTP	= CREATEOBJECT("Microsoft.XMLHTTP")
-				lCreated = .T.
-			CATCH
-			ENDTRY
-		ELSE &&NOT lCreated
-		ENDIF &&NOT lCreated
+		If Type('THIS.oXMLHTTP') <> 'O'
+			This.lValidCall = True
+			This.__setLastErrorText('could not create the XMLHTTP object')
+		Else
+			lCreated = True
+		Endif
+		Return lCreated
 
-		IF TYPE("THIS.oXMLHTTP") <> "O"
-			THIS.lValidCall = .T.
-			THIS.__setLastErrorText("could not create the XMLHTTP object")
-		ELSE &&TYPE("THIS.oXMLHTTP") <> "O"
-			lCreated = .T.
-		ENDIF &&TYPE("THIS.oXMLHTTP") <> "O"
-		RETURN lCreated
-	ENDPROC
+*====================================================================
+	Procedure addRequest(tcVerb As String, tcURL As String) HelpString 'Carga una petición al objeto oRest.'
+		If Empty(tcVerb) .Or. Empty(tcURL)
+			This.lValidCall = True
+			This.__setLastErrorText('Invalid params')
+		Endif
 
-	PROCEDURE addRequest(tcVerb AS STRING, tcURL AS STRING) HELPSTRING "Carga una petición al objeto oRest."
-		IF EMPTY(tcVerb) .OR. EMPTY(tcURL)
-			THIS.lValidCall = .T.
-			THIS.__setLastErrorText("Invalid params")
-		ELSE &&EMPTY(tcVerb) .OR. EMPTY(tcURL)
-		ENDIF &&EMPTY(tcVerb) .OR. EMPTY(tcURL)
+		This.lValidCall = True
+		This.Verb = tcVerb
 
-*-- Add Verb/Method
-		THIS.lValidCall = .T.
-		THIS.VERB = tcVerb
+		This.lValidCall = True
+		This.URL = tcURL
 
-*-- Add URL
-		THIS.lValidCall = .T.
-		THIS.URL = tcURL
-
-	ENDPROC
-
-	PROCEDURE addHeader(tcHeader AS STRING, tcValue AS STRING)
-		IF EMPTY(tcHeader) OR EMPTY(tcValue)
-			THIS.lValidCall = .T.
-			THIS.__setLastErrorText("Invalid params")
-		ELSE &&EMPTY(tcVerb) OR EMPTY(tcURL)
-		ENDIF &&EMPTY(tcVerb) OR EMPTY(tcURL)
+*====================================================================
+	Procedure addHeader(tcHeader As String, tcValue As String)
+		If Empty(tcHeader) Or Empty(tcValue)
+			This.lValidCall = True
+			This.__setLastErrorText('Invalid params')
+		Endif
 
 *-- Add Header Content
-		THIS.lValidCall 	= .T.
-		THIS.ContentType 	= tcHeader
+		This.lValidCall 	= True
+		This.ContentType 	= tcHeader
 
 *-- Add Header Value
-		THIS.lValidCall 	= .T.
-		THIS.ContentValue 	= tcValue
-	ENDPROC
+		This.lValidCall 	= True
+		This.ContentValue 	= tcValue
 
-	PROCEDURE addRequestBody(tcRequestBody AS STRING) "Agrega un contenido en formato JSON al cuerpo de la petición."
-		IF EMPTY(tcRequestBody)
-			THIS.lValidCall = .T.
-			THIS.__setLastErrorText("Invalid request format")
-		ELSE &&EMPTY(tcRequestBody)
-		ENDIF &&EMPTY(tcRequestBody)
-*-- Add Body
-		THIS.lValidCall 	= .T.
-		THIS.requestBody 	= tcRequestBody
-	ENDPROC
+*====================================================================
+	Procedure addRequestBody(tcRequestBody As String) 'Agrega un contenido en formato JSON al cuerpo de la petición.'
+		If Empty(tcRequestBody)
+			This.lValidCall = True
+			This.__setLastErrorText('Invalid request format')
+		Endif
 
-	FUNCTION SEND HELPSTRING "Envía la petición al servidor"
+		This.lValidCall 	= True
+		This.requestBody 	= tcRequestBody
+
+*====================================================================
+	Function Send HelpString 'Envía la petición al servidor'
 *-- Validate Request Params
-		LOCAL cMsg AS STRING, lError as boolean
-		cMsg = ""
-		THIS.__clean_response()
-		IF EMPTY(THIS.VERB)
-			cMsg = "missing verb param"
-		ELSE &&EMPTY(THIS.VERB)
-		ENDIF &&EMPTY(THIS.VERB)
+		Local cMsg As String, lError As boolean
+		cMsg = ''
+		This.__clean_Response()
+		If Empty(This.Verb)
+			cMsg = 'missing verb param'
+		Endif
 
-		IF EMPTY(THIS.URL)
-			cMsg = "missing URL param"
-		ELSE &&EMPTY(THIS.URL)
-		ENDIF &&EMPTY(THIS.URL)
+		If Empty(This.URL)
+			cMsg = 'missing URL param'
+		Endif
 
-		IF NOT EMPTY(cMsg)
-			THIS.lValidCall = .T.
-			THIS.__setLastErrorText(cMsg)
-			RETURN FALSE
-		ELSE &&NOT EMPTY(cMsg)
-		ENDIF &&NOT EMPTY(cMsg)
+		If Not Empty(cMsg)
+			This.lValidCall = True
+			This.__setLastErrorText(cMsg)
+			Return False
+		Endif
 
-		IF NOT THIS.__create_object()
-			RETURN FALSE
-		ELSE &&NOT THIS.__create_object()
-		ENDIF &&NOT THIS.__create_object()
+		If Not This.__create_object()
+			Return False
+		Endif
 
-		IF THIS.ResolveTimeOut > 0 .AND. THIS.CONNECTTIMEOUT > 0 .AND. THIS.SendTimeOut > 0 .AND. THIS.receiveTimeOut > 0
-			THIS.ResolveTimeOut		= THIS.ResolveTimeOut 	* 1000
-			THIS.CONNECTTIMEOUT		= THIS.CONNECTTIMEOUT	* 1000
-			THIS.SendTimeOut		= THIS.SendTimeOut		* 1000
-			THIS.receiveTimeOut		= THIS.receiveTimeOut	* 1000
+		If This.ResolveTimeOut > 0 .And. This.ConnectTimeOut > 0 .And. This.SendTimeOut > 0 .And. This.receiveTimeOut > 0
+			This.ResolveTimeOut		= This.ResolveTimeOut 	* 1000
+			This.ConnectTimeOut		= This.ConnectTimeOut	* 1000
+			This.SendTimeOut		= This.SendTimeOut		* 1000
+			This.receiveTimeOut		= This.receiveTimeOut	* 1000
 
-			THIS.oXMLHTTP.setTimeouts(THIS.ResolveTimeOut, THIS.CONNECTTIMEOUT, THIS.SendTimeOut, THIS.receiveTimeOut)
-		ELSE &&THIS.ResolveTimeOut > 0 .AND. THIS.ConnectTimeOut > 0 .AND. THIS.SendTimeOut > 0 .AND. THIS.receiveTimeOut > 0
-		ENDIF &&THIS.ResolveTimeOut > 0 .AND. THIS.ConnectTimeOut > 0 .AND. THIS.SendTimeOut > 0 .AND. THIS.receiveTimeOut > 0
-	
-		TRY
-			THIS.oXMLHTTP.OPEN(THIS.VERB, THIS.URL)
-		CATCH TO oErr
-			cMsg = ""
-			IF TYPE("oErr.Message") = "C"
+			This.oXMLHTTP.setTimeouts(This.ResolveTimeOut, This.ConnectTimeOut, This.SendTimeOut, This.receiveTimeOut)
+		Endif
+
+		Try
+			This.oXMLHTTP.Open(This.Verb, This.URL)
+		Catch To oErr
+			cMsg = ''
+			If Type('oErr.Message') = 'C'
 				cMsg = oErr.Message
-			ELSE &&TYPE("oErr.Message") = "C"				
-			ENDIF &&TYPE("oErr.Message") = "C"
-			THIS.lValidCall = .T.
-			THIS.__setLastErrorText("error related with send method: " + cMsg)
-			lError = .T.
-		ENDTRY
-		IF lError
-			RETURN FALSE
-		ELSE &&lError
-		ENDIF &&lError
+			Endif
+			This.lValidCall = True
+			This.__setLastErrorText('error related with send method: ' + cMsg)
+			lError = True
+		Endtry
+		If lError
+			Return False
+		Endif
 
-		IF THIS.oXMLHTTP.READYSTATE <> HTTP_OPEN
-			THIS.lValidCall = .T.
-			THIS.__setLastErrorText("could not open the communication socket.")
-			RETURN FALSE
-		ELSE &&THIS.oXMLHTTP.ReadyState <> HTTP_OPEN
-		ENDIF &&THIS.oXMLHTTP.ReadyState <> HTTP_OPEN
+		If This.oXMLHTTP.ReadyState <> HTTP_OPEN
+			This.lValidCall = True
+			This.__setLastErrorText('could not open the communication socket.')
+			Return False
+		Endif
 
-		IF NOT EMPTY(THIS.ContentType) .AND. NOT EMPTY(THIS.ContentValue)
-			THIS.oXMLHTTP.setRequestHeader(THIS.ContentType, THIS.ContentValue)
-		ELSE &&NOT EMPTY(THIS.ContentType) .AND. NOT EMPTY(THIS.ContentValue)
-		ENDIF &&NOT EMPTY(THIS.ContentType) .AND. NOT EMPTY(THIS.ContentValue)
+		If Not Empty(This.ContentType) .And. Not Empty(This.ContentValue)
+			This.oXMLHTTP.setRequestHeader(This.ContentType, This.ContentValue)
+		Endif
 
-		IF !THIS.__isConnected()
-			THIS.lValidCall = .T.
-			THIS.__setLastErrorText("there is not an active internet connection.")
-			RETURN FALSE
-		ELSE &&!THIS.__isConnected()
-		ENDIF &&!THIS.__isConnected()
-					
+		If !This.__isConnected()
+			This.lValidCall = True
+			This.__setLastErrorText('there is not an active internet connection.')
+			Return False
+		Endif
+
 *-- Send the Request
-		
-		TRY
-			THIS.oXMLHTTP.SEND(THIS.REQUESTBODY)
-		CATCH TO oErr			
-			cMsg = ""
-			IF TYPE("oErr.Message") = "C"
+
+		Try
+			This.oXMLHTTP.Send(This.requestBody)
+		Catch To oErr
+			cMsg = ''
+			If Type('oErr.Message') = 'C'
 				cMsg = oErr.Message
-			ELSE &&TYPE("oErr.Message") = "C"				
-			ENDIF &&TYPE("oErr.Message") = "C"
-			THIS.lValidCall = .T.
-			THIS.__setLastErrorText("error related with send method: " + cMsg)
-			lError = .T.
-		ENDTRY
-		IF lError
-			RETURN FALSE
-		ELSE &&lError
-		ENDIF &&lError
+			Endif
+			This.lValidCall = True
+			This.__setLastErrorText('error related with send method: ' + cMsg)
+			lError = True
+		Endtry
+		If lError
+			Return False
+		Endif
 
 *-- Loop until readyState change or timeouts dies.
-		IF EMPTY(THIS.waitTimeOut)
-			THIS.waitTimeOut = 5
-		ELSE &&EMPTY(THIS.waitTimeOut)
-		ENDIF &&EMPTY(THIS.waitTimeOut)
+		If Empty(This.waitTimeOut)
+			This.waitTimeOut = 5
+		Endif
 
-		nSeg = SECONDS() + THIS.waitTimeOut
-		DO WHILE SECONDS() <= nSeg
-			IF THIS.oXMLHTTP.READYSTATE <> HTTP_OPEN
-				EXIT && There's an answer.
-			ELSE &&THIS.oXMLHTTP.readyState <> HTTP_OPEN
-			ENDIF &&THIS.oXMLHTTP.readyState <> HTTP_OPEN
-		ENDDO &&WHILE SECONDS() <= nSeg
-
-		THIS.lValidCall 	= .T.
-		THIS.RESPONSE 		= THIS.__html_entity_decode(THIS.oXMLHTTP.RESPONSETEXT)
-		THIS.lValidCall 	= .T.
-		THIS.STATUS			= THIS.oXMLHTTP.STATUS
-		THIS.lValidCall 	= .T.
-		THIS.STATUSTEXT		= THIS.oXMLHTTP.STATUSTEXT
-		THIS.lValidCall 	= .T.
-		THIS.RESPONSETEXT	= THIS.RESPONSE
-		THIS.lValidCall 	= .T.
-		THIS.READYSTATE		= THIS.oXMLHTTP.READYSTATE
-
-		THIS.oXMLHTTP = .NULL.
-	ENDFUNC
-*-- FUNCTION __isConnected
-	HIDDEN FUNCTION __isConnected
-		DECLARE INTEGER InternetGetConnectedState IN WinInet INTEGER @lpdwFlags, INTEGER dwReserved
-		LOCAL lnFlags, lnReserved, lnSuccess
+		nSeg = Seconds() + This.waitTimeOut
+		Do While Seconds() <= nSeg
+			If This.oXMLHTTP.ReadyState <> HTTP_OPEN
+				Exit && There's an answer.
+			Endif
+		Enddo
+		With This
+			.lValidCall 	= True
+			.Response 		= .__html_entity_decode(.oXMLHTTP.ResponseText)
+			.lValidCall 	= True
+			.Status			= .oXMLHTTP.Status
+			.lValidCall 	= True
+			.StatusText		= .oXMLHTTP.StatusText
+			.lValidCall 	= True
+			.ResponseText	= .Response
+			.lValidCall 	= True
+			.ReadyState		= .oXMLHTTP.ReadyState
+			.oXMLHTTP 		= .Null.
+		Endwith
+*====================================================================
+	Hidden Function __isConnected
+		Declare Integer InternetGetConnectedState In WinInet Integer @lpdwFlags, Integer dwReserved
+		Local lnFlags, lnReserved, lnSuccess
 		lnFlags		= 0
 		lnReserved	= 0
 		lnSuccess	= InternetGetConnectedState(@lnFlags,lnReserved)
-		CLEAR DLLS
-		RETURN (lnSuccess=1)
-	ENDFUNC	
-*-- Getters and Setters
-	HIDDEN PROCEDURE __setLastErrorText
-		LPARAMETERS tcErrorText
-		THIS.lValidCall = .T.
-		IF NOT EMPTY(tcErrorText)
-			THIS.LastErrorText = tcErrorText
-		ELSE &&NOT EMPTY(tcErrorText)
-			THIS.LastErrorText = ""
-		ENDIF &&NOT EMPTY(tcErrorText)
-	ENDPROC
-	*-- PROCEDURE __clean_response
-	HIDDEN PROCEDURE __clean_response
-*-- Clean Response
-		THIS.lValidCall 	= .T.
-		THIS.RESPONSE 		= ""
-		
-		THIS.lValidCall 	= .T.
-		THIS.STATUS			= 0
+		Clear Dlls
+		Return (lnSuccess=1)
 
-		THIS.lValidCall 	= .T.
-		THIS.STATUSTEXT		= ""
+*====================================================================
+	Hidden Procedure __setLastErrorText(tcErrorText As String)
+		This.lValidCall = True
+		This.LastErrorText = Iif(!Empty(tcErrorText), tcErrorText, '')
 
-		THIS.lValidCall 	= .T.
-		THIS.RESPONSETEXT	= ""
+*====================================================================
+	Hidden Procedure __clean_Response
+		With This
+			.lValidCall 	= True
+			.Response 		= ''
+			.lValidCall 	= True
+			.Status			= 0
+			.lValidCall 	= True
+			.StatusText		= ''
+			.lValidCall 	= True
+			.ResponseText	= ''
+			.lValidCall 	= True
+			.ReadyState		= 0
+		Endwith
+*====================================================================
+	Hidden Procedure __clean_request
+		With This
+			.lValidCall 	= True
+			.Response 		= ''
+			.lValidCall 	= True
+			.Verb 			= ''
+			.lValidCall 	= True
+			.URL 			= ''
+			.lValidCall 	= True
+			.ContentType 	= ''
+			.lValidCall 	= True
+			.ContentValue 	= ''
+			.lValidCall 	= True
+			.requestBody 	= ''
+			.lValidCall 	= True
+			.Status			= 0
+			.lValidCall 	= True
+			.StatusText		= ''
+			.lValidCall 	= True
+			.ResponseText	= ''
+			.lValidCall 	= True
+			.ReadyState		= 0
+		Endwith
+*====================================================================
+	Hidden Function __html_entity_decode(cText As Memo) As Memo
+		cText = Strtran(cText, "\u00a0", "Â")
+		cText = Strtran(cText, "\u00a1", "¡")
+		cText = Strtran(cText, "\u00a2", "¢")
+		cText = Strtran(cText, "\u00a3", "£")
+		cText = Strtran(cText, "\u00a4", "¤")
+		cText = Strtran(cText, "\u00a5", "¥")
+		cText = Strtran(cText, "\u00a6", "¦")
+		cText = Strtran(cText, "\u00a7", "§")
+		cText = Strtran(cText, "\u00a8", "¨")
+		cText = Strtran(cText, "\u00a9", "©")
+		cText = Strtran(cText, "\u00aa", "ª")
+		cText = Strtran(cText, "\u00ab", "«")
+		cText = Strtran(cText, "\u00ac", "¬")
+		cText = Strtran(cText, "\u00ae", "®")
+		cText = Strtran(cText, "\u00af", "¯")
+		cText = Strtran(cText, "\u00b0", "°")
+		cText = Strtran(cText, "\u00b1", "±")
+		cText = Strtran(cText, "\u00b2", "²")
+		cText = Strtran(cText, "\u00b3", "³")
+		cText = Strtran(cText, "\u00b4", "´")
+		cText = Strtran(cText, "\u00b5", "µ")
+		cText = Strtran(cText, "\u00b6", "¶")
+		cText = Strtran(cText, "\u00b7", "·")
+		cText = Strtran(cText, "\u00b8", "¸")
+		cText = Strtran(cText, "\u00b9", "¹")
+		cText = Strtran(cText, "\u00ba", "º")
+		cText = Strtran(cText, "\u00bb", "»")
+		cText = Strtran(cText, "\u00bc", "¼")
+		cText = Strtran(cText, "\u00bd", "½")
+		cText = Strtran(cText, "\u00be", "¾")
+		cText = Strtran(cText, "\u00bf", "¿")
+		cText = Strtran(cText, "\u00c0", "À")
+		cText = Strtran(cText, "\u00c1", "Á")
+		cText = Strtran(cText, "\u00c2", "Â")
+		cText = Strtran(cText, "\u00c3", "Ã")
+		cText = Strtran(cText, "\u00c4", "Ä")
+		cText = Strtran(cText, "\u00c5", "Å")
+		cText = Strtran(cText, "\u00c6", "Æ")
+		cText = Strtran(cText, "\u00c7", "Ç")
+		cText = Strtran(cText, "\u00c8", "È")
+		cText = Strtran(cText, "\u00c9", "É")
+		cText = Strtran(cText, "\u00ca", "Ê")
+		cText = Strtran(cText, "\u00cb", "Ë")
+		cText = Strtran(cText, "\u00cc", "Ì")
+		cText = Strtran(cText, "\u00cd", "Í")
+		cText = Strtran(cText, "\u00ce", "Î")
+		cText = Strtran(cText, "\u00cf", "Ï")
+		cText = Strtran(cText, "\u00d0", "Ð")
+		cText = Strtran(cText, "\u00d1", "Ñ")
+		cText = Strtran(cText, "\u00d2", "Ò")
+		cText = Strtran(cText, "\u00d3", "Ó")
+		cText = Strtran(cText, "\u00d4", "Ô")
+		cText = Strtran(cText, "\u00d5", "Õ")
+		cText = Strtran(cText, "\u00d6", "Ö")
+		cText = Strtran(cText, "\u00d7", "×")
+		cText = Strtran(cText, "\u00d8", "Ø")
+		cText = Strtran(cText, "\u00d9", "Ù")
+		cText = Strtran(cText, "\u00da", "Ú")
+		cText = Strtran(cText, "\u00db", "Û")
+		cText = Strtran(cText, "\u00dc", "Ü")
+		cText = Strtran(cText, "\u00dd", "Ý")
+		cText = Strtran(cText, "\u00de", "Þ")
+		cText = Strtran(cText, "\u00df", "ß")
+		cText = Strtran(cText, "\u00e0", "à")
+		cText = Strtran(cText, "\u00e1", "á")
+		cText = Strtran(cText, "\u00e2", "â")
+		cText = Strtran(cText, "\u00e3", "ã")
+		cText = Strtran(cText, "\u00e4", "ä")
+		cText = Strtran(cText, "\u00e5", "å")
+		cText = Strtran(cText, "\u00e6", "æ")
+		cText = Strtran(cText, "\u00e7", "ç")
+		cText = Strtran(cText, "\u00e8", "è")
+		cText = Strtran(cText, "\u00e9", "é")
+		cText = Strtran(cText, "\u00ea", "ê")
+		cText = Strtran(cText, "\u00eb", "ë")
+		cText = Strtran(cText, "\u00ec", "ì")
+		cText = Strtran(cText, "\u00ed", "í")
+		cText = Strtran(cText, "\u00ee", "î")
+		cText = Strtran(cText, "\u00ef", "ï")
+		cText = Strtran(cText, "\u00f0", "ð")
+		cText = Strtran(cText, "\u00f1", "ñ")
+		cText = Strtran(cText, "\u00f2", "ò")
+		cText = Strtran(cText, "\u00f3", "ó")
+		cText = Strtran(cText, "\u00f4", "ô")
+		cText = Strtran(cText, "\u00f5", "õ")
+		cText = Strtran(cText, "\u00f6", "ö")
+		cText = Strtran(cText, "\u00f7", "÷")
+		cText = Strtran(cText, "\u00f8", "ø")
+		cText = Strtran(cText, "\u00f9", "ù")
+		cText = Strtran(cText, "\u00fa", "ú")
+		cText = Strtran(cText, "\u00fb", "û")
+		cText = Strtran(cText, "\u00fc", "ü")
+		cText = Strtran(cText, "\u00fd", "ý")
+		cText = Strtran(cText, "\u00fe", "þ")
+		cText = Strtran(cText, "\u00ff", "ÿ")
+		cText = Strtran(cText, "\u0026", "&")
+		cText = Strtran(cText, "\u2019", "'")
+		cText = Strtran(cText, "\u003A", ":")
+		cText = Strtran(cText, "\u002B", "+")
+		cText = Strtran(cText, "\u002D", "-")
+		cText = Strtran(cText, "\u0023", "#")
+		cText = Strtran(cText, "\u0025", "%")
+		Return cText
 
-		THIS.lValidCall 	= .T.
-		THIS.READYSTATE		= 0		
-	ENDPROC
+*====================================================================
+	Hidden Procedure LastErrorText_Assign(vNewVal)
+		If This.lValidCall
+			This.lValidCall = False
+			This.LastErrorText = m.vNewVal
+		Endif
 
-	HIDDEN PROCEDURE __clean_request
-*-- Clean Response
-		THIS.lValidCall 	= .T.
-		THIS.RESPONSE 		= ""
+*====================================================================
+	Hidden Procedure Version_Assign(vNewVal)
+		If This.lValidCall
+			This.lValidCall = False
+			This.Version = m.vNewVal
+		Endif
 
-*-- Clean Verb
-		THIS.lValidCall 	= .T.
-		THIS.VERB 			= ""
+*====================================================================
+	Hidden Function Version_Access
+		Return This.Version
 
-*-- Clean URL
-		THIS.lValidCall 	= .T.
-		THIS.URL 			= ""
+*====================================================================
+	Hidden Procedure LastUpdate_Assign(vNewVal)
+		If This.lValidCall
+			This.lValidCall = False
+			This.LastUpdate = m.vNewVal
+		Endif
 
-*-- Clean ContentType
-		THIS.lValidCall 	= .T.
-		THIS.ContentType 	= ""
+*====================================================================
+	Hidden Function LastUpdate_Access
+		Return This.LastUpdate
 
-*-- Clean ContentValue
-		THIS.lValidCall 	= .T.
-		THIS.ContentValue 	= ""
+*====================================================================
+	Hidden Procedure Author_Assign(vNewVal)
+		If This.lValidCall
+			This.lValidCall = False
+			This.Author = m.vNewVal
+		Endif
 
-*-- Clean RequestBody
-		THIS.lValidCall 	= .T.
-		THIS.requestBody 	= ""
+*====================================================================
+	Hidden Function Author_Access
+		Return This.Author
 
-		THIS.lValidCall 	= .T.
-		THIS.STATUS			= 0
+*====================================================================
+	Hidden Procedure Email_Assign(vNewVal)
+		If This.lValidCall
+			This.lValidCall = False
+			This.Email = m.vNewVal
+		Endif
 
-		THIS.lValidCall 	= .T.
-		THIS.STATUSTEXT		= ""
+*====================================================================
+	Hidden Function Email_Access
+		Return This.Email
 
-		THIS.lValidCall 	= .T.
-		THIS.RESPONSETEXT	= ""
+*====================================================================
+	Hidden Procedure RequestBody_Assign(vNewVal)
+		If This.lValidCall
+			This.lValidCall = False
+			This.requestBody = m.vNewVal
+		Endif
 
-		THIS.lValidCall 	= .T.
-		THIS.READYSTATE		= 0
+*====================================================================
+	Hidden Function RequestBody_Access
+		Return This.requestBody
 
-	ENDPROC
-*-- FUNCTION __html_entity_decode(cText AS MEMO)
-	HIDDEN FUNCTION __html_entity_decode(cText AS MEMO) AS MEMO
-		cText = STRTRAN(cText, "\u00a0", "Â")
-		cText = STRTRAN(cText, "\u00a1", "¡")
-		cText = STRTRAN(cText, "\u00a2", "¢")
-		cText = STRTRAN(cText, "\u00a3", "£")
-		cText = STRTRAN(cText, "\u00a4", "¤")
-		cText = STRTRAN(cText, "\u00a5", "¥")
-		cText = STRTRAN(cText, "\u00a6", "¦")
-		cText = STRTRAN(cText, "\u00a7", "§")
-		cText = STRTRAN(cText, "\u00a8", "¨")
-		cText = STRTRAN(cText, "\u00a9", "©")
-		cText = STRTRAN(cText, "\u00aa", "ª")
-		cText = STRTRAN(cText, "\u00ab", "«")
-		cText = STRTRAN(cText, "\u00ac", "¬")
-		cText = STRTRAN(cText, "\u00ae", "®")
-		cText = STRTRAN(cText, "\u00af", "¯")
-		cText = STRTRAN(cText, "\u00b0", "°")
-		cText = STRTRAN(cText, "\u00b1", "±")
-		cText = STRTRAN(cText, "\u00b2", "²")
-		cText = STRTRAN(cText, "\u00b3", "³")
-		cText = STRTRAN(cText, "\u00b4", "´")
-		cText = STRTRAN(cText, "\u00b5", "µ")
-		cText = STRTRAN(cText, "\u00b6", "¶")
-		cText = STRTRAN(cText, "\u00b7", "·")
-		cText = STRTRAN(cText, "\u00b8", "¸")
-		cText = STRTRAN(cText, "\u00b9", "¹")
-		cText = STRTRAN(cText, "\u00ba", "º")
-		cText = STRTRAN(cText, "\u00bb", "»")
-		cText = STRTRAN(cText, "\u00bc", "¼")
-		cText = STRTRAN(cText, "\u00bd", "½")
-		cText = STRTRAN(cText, "\u00be", "¾")
-		cText = STRTRAN(cText, "\u00bf", "¿")
-		cText = STRTRAN(cText, "\u00c0", "À")
-		cText = STRTRAN(cText, "\u00c1", "Á")
-		cText = STRTRAN(cText, "\u00c2", "Â")
-		cText = STRTRAN(cText, "\u00c3", "Ã")
-		cText = STRTRAN(cText, "\u00c4", "Ä")
-		cText = STRTRAN(cText, "\u00c5", "Å")
-		cText = STRTRAN(cText, "\u00c6", "Æ")
-		cText = STRTRAN(cText, "\u00c7", "Ç")
-		cText = STRTRAN(cText, "\u00c8", "È")
-		cText = STRTRAN(cText, "\u00c9", "É")
-		cText = STRTRAN(cText, "\u00ca", "Ê")
-		cText = STRTRAN(cText, "\u00cb", "Ë")
-		cText = STRTRAN(cText, "\u00cc", "Ì")
-		cText = STRTRAN(cText, "\u00cd", "Í")
-		cText = STRTRAN(cText, "\u00ce", "Î")
-		cText = STRTRAN(cText, "\u00cf", "Ï")
-		cText = STRTRAN(cText, "\u00d0", "Ð")
-		cText = STRTRAN(cText, "\u00d1", "Ñ")
-		cText = STRTRAN(cText, "\u00d2", "Ò")
-		cText = STRTRAN(cText, "\u00d3", "Ó")
-		cText = STRTRAN(cText, "\u00d4", "Ô")
-		cText = STRTRAN(cText, "\u00d5", "Õ")
-		cText = STRTRAN(cText, "\u00d6", "Ö")
-		cText = STRTRAN(cText, "\u00d7", "×")
-		cText = STRTRAN(cText, "\u00d8", "Ø")
-		cText = STRTRAN(cText, "\u00d9", "Ù")
-		cText = STRTRAN(cText, "\u00da", "Ú")
-		cText = STRTRAN(cText, "\u00db", "Û")
-		cText = STRTRAN(cText, "\u00dc", "Ü")
-		cText = STRTRAN(cText, "\u00dd", "Ý")
-		cText = STRTRAN(cText, "\u00de", "Þ")
-		cText = STRTRAN(cText, "\u00df", "ß")
-		cText = STRTRAN(cText, "\u00e0", "à")
-		cText = STRTRAN(cText, "\u00e1", "á")
-		cText = STRTRAN(cText, "\u00e2", "â")
-		cText = STRTRAN(cText, "\u00e3", "ã")
-		cText = STRTRAN(cText, "\u00e4", "ä")
-		cText = STRTRAN(cText, "\u00e5", "å")
-		cText = STRTRAN(cText, "\u00e6", "æ")
-		cText = STRTRAN(cText, "\u00e7", "ç")
-		cText = STRTRAN(cText, "\u00e8", "è")
-		cText = STRTRAN(cText, "\u00e9", "é")
-		cText = STRTRAN(cText, "\u00ea", "ê")
-		cText = STRTRAN(cText, "\u00eb", "ë")
-		cText = STRTRAN(cText, "\u00ec", "ì")
-		cText = STRTRAN(cText, "\u00ed", "í")
-		cText = STRTRAN(cText, "\u00ee", "î")
-		cText = STRTRAN(cText, "\u00ef", "ï")
-		cText = STRTRAN(cText, "\u00f0", "ð")
-		cText = STRTRAN(cText, "\u00f1", "ñ")
-		cText = STRTRAN(cText, "\u00f2", "ò")
-		cText = STRTRAN(cText, "\u00f3", "ó")
-		cText = STRTRAN(cText, "\u00f4", "ô")
-		cText = STRTRAN(cText, "\u00f5", "õ")
-		cText = STRTRAN(cText, "\u00f6", "ö")
-		cText = STRTRAN(cText, "\u00f7", "÷")
-		cText = STRTRAN(cText, "\u00f8", "ø")
-		cText = STRTRAN(cText, "\u00f9", "ù")
-		cText = STRTRAN(cText, "\u00fa", "ú")
-		cText = STRTRAN(cText, "\u00fb", "û")
-		cText = STRTRAN(cText, "\u00fc", "ü")
-		cText = STRTRAN(cText, "\u00fd", "ý")
-		cText = STRTRAN(cText, "\u00fe", "þ")
-		cText = STRTRAN(cText, "\u00ff", "ÿ")
-		cText = STRTRAN(cText, "\u0026", "&")
-		cText = STRTRAN(cText, "\u2019", "'")
-		cText = STRTRAN(cText, "\u003A", ":")
-		cText = STRTRAN(cText, "\u002B", "+")
-		cText = STRTRAN(cText, "\u002D", "-")
-		cText = STRTRAN(cText, "\u0023", "#")
-		cText = STRTRAN(cText, "\u0025", "%")
-		RETURN cText
-	ENDFUNC
-	*-- PROCEDURE LastErrorText_Assign
-	HIDDEN PROCEDURE LastErrorText_Assign
-		LPARAMETERS vNewVal
-		IF THIS.lValidCall
-			THIS.lValidCall = .F.
-			THIS.LastErrorText = m.vNewVal
-		ELSE &&THIS.lValidCall
-		ENDIF &&THIS.lValidCall
-	ENDPROC
-	HIDDEN PROCEDURE Version_Assign
-		LPARAMETERS vNewVal
-		IF THIS.lValidCall
-			THIS.lValidCall = .F.
-			THIS.VERSION = m.vNewVal
-		ELSE &&THIS.lValidCall
-		ENDIF &&THIS.lValidCall
-	ENDPROC
-	HIDDEN FUNCTION Version_Access
-		RETURN THIS.VERSION
-	ENDFUNC
-	HIDDEN PROCEDURE LastUpdate_Assign
-		LPARAMETERS vNewVal
-		IF THIS.lValidCall
-			THIS.lValidCall = .F.
-			THIS.LastUpdate = m.vNewVal
-		ELSE &&THIS.lValidCall
-		ENDIF &&THIS.lValidCall
-	ENDPROC
-	HIDDEN FUNCTION LastUpdate_Access
-		RETURN THIS.LastUpdate
-	ENDFUNC
-	HIDDEN PROCEDURE Author_Assign
-		LPARAMETERS vNewVal
-		IF THIS.lValidCall
-			THIS.lValidCall = .F.
-			THIS.Author = m.vNewVal
-		ELSE &&THIS.lValidCall
-		ENDIF &&THIS.lValidCall
-	ENDPROC
-	HIDDEN FUNCTION Author_Access
-		RETURN THIS.Author
-	ENDFUNC
-	HIDDEN PROCEDURE Email_Assign
-		LPARAMETERS vNewVal
-		IF THIS.lValidCall
-			THIS.lValidCall = .F.
-			THIS.Email = m.vNewVal
-		ELSE &&THIS.lValidCall
-		ENDIF &&THIS.lValidCall
-	ENDPROC
-	HIDDEN FUNCTION Email_Access
-		RETURN THIS.Email
-	ENDFUNC
-	HIDDEN PROCEDURE RequestBody_Assign
-		LPARAMETERS vNewVal
-		IF THIS.lValidCall
-			THIS.lValidCall = .F.
-			THIS.requestBody = m.vNewVal
-		ELSE &&THIS.lValidCall
-		ENDIF &&THIS.lValidCall
-	ENDPROC
-	HIDDEN FUNCTION RequestBody_Access
-		RETURN THIS.requestBody
-	ENDFUNC
-	HIDDEN FUNCTION Verb_Access
-		RETURN THIS.VERB
-	ENDFUNC
-	HIDDEN FUNCTION URL_Access
-		RETURN THIS.URL
-	ENDFUNC
-	HIDDEN FUNCTION RequestBody_Access
-		RETURN THIS.requestBody
-	ENDFUNC
-	HIDDEN FUNCTION Response_Access
-		RETURN THIS.RESPONSE
-	ENDFUNC
-	HIDDEN PROCEDURE Verb_Assign
-		LPARAMETERS vNewVal
-		IF THIS.lValidCall
-			THIS.lValidCall = .F.
-			THIS.VERB = m.vNewVal
-		ELSE &&THIS.lValidCall
-		ENDIF &&THIS.lValidCall
-	ENDPROC
-	HIDDEN PROCEDURE URL_Assign
-		LPARAMETERS vNewVal
-		IF THIS.lValidCall
-			THIS.lValidCall = .F.
-			THIS.URL = m.vNewVal
-		ELSE &&THIS.lValidCall
-		ENDIF &&THIS.lValidCall
-	ENDPROC
-	HIDDEN PROCEDURE RequestBody_Assign
-		LPARAMETERS vNewVal
-		IF THIS.lValidCall
-			THIS.lValidCall = .F.
-			THIS.requestBody = m.vNewVal
-		ELSE &&THIS.lValidCall
-		ENDIF &&THIS.lValidCall
-	ENDPROC
-	HIDDEN PROCEDURE Response_Assign
-		LPARAMETERS vNewVal
-		IF THIS.lValidCall
-			THIS.lValidCall = .F.
-			THIS.RESPONSE = m.vNewVal
-		ELSE &&THIS.lValidCall
-		ENDIF &&THIS.lValidCall
-	ENDPROC
-	HIDDEN FUNCTION ContentType_Access
-		RETURN THIS.ContentType
-	ENDFUNC
-	HIDDEN PROCEDURE ContentType_Assign
-		LPARAMETERS vNewVal
-		IF THIS.lValidCall
-			THIS.lValidCall = .F.
-			THIS.ContentType = m.vNewVal
-		ELSE &&THIS.lValidCall
-		ENDIF &&THIS.lValidCall
-	ENDPROC
-	HIDDEN FUNCTION ContentValue_Access
-		RETURN THIS.ContentValue
-	ENDFUNC
-	HIDDEN PROCEDURE ContentValue_Assign
-		LPARAMETERS vNewVal
-		IF THIS.lValidCall
-			THIS.lValidCall = .F.
-			THIS.ContentValue = m.vNewVal
-		ELSE &&THIS.lValidCall
-		ENDIF &&THIS.lValidCall
-	ENDPROC
-	HIDDEN FUNCTION STATUS_Access
-		RETURN THIS.STATUS
-	ENDPROC
-	HIDDEN FUNCTION STATUSTEXT_Access
-		RETURN THIS.STATUSTEXT
-	ENDPROC
-	HIDDEN FUNCTION RESPONSETEXT_Access
-		RETURN THIS.RESPONSETEXT
-	ENDPROC
-	HIDDEN FUNCTION READYSTATE_Access
-		RETURN THIS.READYSTATE
-	ENDPROC
-	HIDDEN PROCEDURE STATUS_Assign
-		LPARAMETERS vNewVal
-		IF THIS.lValidCall
-			THIS.STATUS = m.vNewVal
-		ELSE &&THIS.lValidCall
-		ENDIF &&THIS.lValidCall
-	ENDFUNC
-	HIDDEN PROCEDURE STATUSTEXT_Assign
-		LPARAMETERS vNewVal
-		IF THIS.lValidCall
-			THIS.STATUSTEXT = m.vNewVal
-		ELSE &&THIS.lValidCall
-		ENDIF &&THIS.lValidCall
-	ENDFUNC
-	HIDDEN PROCEDURE RESPONSETEXT_Assign
-		LPARAMETERS vNewVal
-		IF THIS.lValidCall
-			THIS.RESPONSETEXT = m.vNewVal
-		ELSE &&THIS.lValidCall
-		ENDIF &&THIS.lValidCall
-	ENDFUNC
-	HIDDEN PROCEDURE READYSTATE_Assign
-		LPARAMETERS vNewVal
-		IF THIS.lValidCall
-			THIS.READYSTATE = m.vNewVal
-		ELSE &&THIS.lValidCall
-		ENDIF &&THIS.lValidCall
-	ENDFUNC
-ENDDEFINE
+*====================================================================
+	Hidden Function Verb_Access
+		Return This.Verb
+
+*====================================================================
+	Hidden Function URL_Access
+		Return This.URL
+
+*====================================================================
+	Hidden Function RequestBody_Access
+		Return This.requestBody
+
+*====================================================================
+	Hidden Function Response_Access
+		Return This.Response
+
+*====================================================================
+	Hidden Procedure Verb_Assign(vNewVal)
+		If This.lValidCall
+			This.lValidCall = False
+			This.Verb = m.vNewVal
+		Endif
+
+*====================================================================
+	Hidden Procedure URL_Assign(vNewVal)
+		If This.lValidCall
+			This.lValidCall = False
+			This.URL = m.vNewVal
+		Endif
+
+*====================================================================
+	Hidden Procedure RequestBody_Assign(vNewVal)
+		If This.lValidCall
+			This.lValidCall = False
+			This.requestBody = m.vNewVal
+		Endif
+
+*====================================================================
+	Hidden Procedure Response_Assign(vNewVal)
+		If This.lValidCall
+			This.lValidCall = False
+			This.Response = m.vNewVal
+		Endif
+
+*====================================================================
+	Hidden Function ContentType_Access
+		Return This.ContentType
+
+*====================================================================
+	Hidden Procedure ContentType_Assign(vNewVal)
+		If This.lValidCall
+			This.lValidCall = False
+			This.ContentType = m.vNewVal
+		Endif
+
+*====================================================================
+	Hidden Function ContentValue_Access
+		Return This.ContentValue
+
+*====================================================================
+	Hidden Procedure ContentValue_Assign(vNewVal)
+		If This.lValidCall
+			This.lValidCall = False
+			This.ContentValue = m.vNewVal
+		Endif
+
+*====================================================================
+	Hidden Function STATUS_Access
+		Return This.Status
+
+*====================================================================
+	Hidden Function StatusText_Access
+		Return This.StatusText
+
+*====================================================================
+	Hidden Function ResponseText_Access
+		Return This.ResponseText
+
+*====================================================================
+	Hidden Function ReadyState_Access
+		Return This.ReadyState
+
+*====================================================================
+	Hidden Procedure STATUS_Assign(vNewVal)
+		If This.lValidCall
+			This.Status = m.vNewVal
+		Endif
+
+*====================================================================
+	Hidden Procedure StatusText_Assign(vNewVal)
+		If This.lValidCall
+			This.StatusText = m.vNewVal
+		Endif
+
+*====================================================================
+	Hidden Procedure ResponseText_Assign(vNewVal)
+		If This.lValidCall
+			This.ResponseText = m.vNewVal
+		Endif
+
+*====================================================================
+	Hidden Procedure ReadyState_Assign(vNewVal)
+		If This.lValidCall
+			This.ReadyState = m.vNewVal
+		Endif
+
+*====================================================================
+Enddefine
