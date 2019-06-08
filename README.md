@@ -43,27 +43,27 @@
 ### Examples
 
 ```xBase
- * Create Object
- SET PROCEDURE TO "VFPRestClient.prg" ADDITIVE
- loREST = NEWOBJECT("Rest", "VFPRestClient.prg")
+ // Create Object
+ Set Procedure To "VFPRestClient.prg" Additive
+ Public Rest
+ Rest = NewObject("Rest", "VFPRestClient.prg")
  
- * Get planet with ID 1 from https://swapi.co
- loRest.addRequest(loRest.GET, "https://swapi.co/api/planets/1/")
+ // Get planet with ID 1 from https://swapi.co
+ Rest.AddRequest(Rest.GET, "https://swapi.co/api/planets/1/")
  
- * Don't forget check the LastErrorText
- IF !EMPTY(loRest.LastErrorText) 
- 	MESSAGEBOX(loRest.LastErrorText, 0+48, "Something went wrong")
-	RELEASE loRest
-	RETURN
- ELSE &&!EMPTY(loRest.LastErrorText)
- ENDIF &&!EMPTY(loRest.LastErrorText)
+ // Don't forget check the LastErrorText
+ If !Empty(Rest.LastErrorText) 
+ 	?Rest.LastErrorText, "Something went wrong"
+	Release Rest
+	Return
+ EndIf
  
- * Send the request
- IF loRest.Send()
- 	MESSAGEBOX(loRest.Response, 64, "Success")
- ELSE &&loRest.Send()
- 	MESSAGEBOX(loRest.Response, 48, "Something went wrong")
- ENDIF &&loRest.Send()
+ // Send the request
+ If Rest.Send()
+     ?Rest.Response, "Success"
+ Else
+     ?Rest.Response, "Something went wrong"
+ EndIf
  
-RELEASE loRest
+Release Rest
 ```
