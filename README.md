@@ -62,7 +62,7 @@
  If Rest.Send()
      ?Rest.Response, "Success"
  Else
-     ?Rest.Response, 'Something went wrong'
+     ?Rest.Response, "Something went wrong"
  EndIf
  
 Release Rest
