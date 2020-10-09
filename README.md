@@ -7,9 +7,16 @@
 
 **Irwin Rodríguez** (Toledo, Spain)
 
+### Collaborators
+
+**Gaston Alberto Cardenas Chicangana**
+
+
 ### Latest Release
 
 **[VFPRestClient](/README.md)** - v.1.5 (beta) - Release 2019-04-09 14:17:51
+
+**Release Version** - v.1.6 - Release 2020-10-09 19:08:05
 
 <hr>
 
