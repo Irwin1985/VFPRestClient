@@ -10,102 +10,118 @@ Define Class Rest As Custom
 	Hidden requestBody
 	Hidden ContentType
 	Hidden ContentValue
+	Hidden ContentType2
+	Hidden ContentValue2
+	Hidden ContentType3
+	Hidden ContentValue3
+	Hidden ProxyType
+	Hidden ProxyValue
 
-	Version			= ''
-	LastUpdate		= ''
-	Author			= ''
-	Email			= ''
-	LastErrorText 	= ''
-	Content_Type	= 'Content-Type'
-	Appication_Json	= 'application/json'
-	Response		= ''
-	Status			= 0
-	StatusText		= ''
-	ResponseText	= ''
-	ReadyState		= 0
+	Version = ''
+	LastUpdate = ''
+	Author = ''
+	Email = ''
+	LastErrorText = ''
+	Content_Type = 'Content-Type'
+	Appication_Json = 'application/json'
+	Response = ''
+	Status = 0
+	StatusText = ''
+	ResponseText = ''
+	ReadyState = 0
 
-	Get				= 'GET'
-	POST			= 'POST'
-	PUT				= 'PUT'
-	PATCH			= 'PATCH'
-	Delete			= 'DELETE'
-	Copy			= 'COPY'
-	Head			= 'HEAD'
-	OPTIONS			= 'OPTIONS'
-	Link			= 'LINK'
-	UNLINK			= 'UNLINK'
-	PURGE			= 'PURGE'
-	Lock			= 'LOCK'
-	Unlock			= 'UNLOCK'
-	PROPFIND		= 'PROPFIND'
-	View			= 'VIEW'
+	Get 		= 'GET'
+	POST 		= 'POST'
+	PUT 		= 'PUT'
+	PATCH 		= 'PATCH'
+	Delete 		= 'DELETE'
+	Copy 		= 'COPY'
+	Head 		= 'HEAD'
+	OPTIONS 	= 'OPTIONS'
+	Link 		= 'LINK'
+	UNLINK 		= 'UNLINK'
+	PURGE 		= 'PURGE'
+	Lock 		= 'LOCK'
+	Unlock 		= 'UNLOCK'
+	PROPFIND 	= 'PROPFIND'
+	View 		= 'VIEW'
 
-	#Define True 				.T.
-	#Define False 				.F.
+	#Define True .T.
+	#Define False .F.
 	#Define HTTP_STATUS_OK      200
 	#Define HTTP_COMPLETED      4
 	#Define HTTP_OPEN           1
 
-	ResolveTimeOut	= 5		&& The value is applied to mapping hot names to IP addresses.
-	ConnectTimeOut	= 60	&& The value is applied for establishing a communication socket with the target server.
-	SendTimeOut		= 30	&& The value applies to sending an individual packet of request data on the communication socket to the target server.
-	receiveTimeOut	= 30	&& The value applies to receiving a packet of response data from the target server.
-	waitTimeOut		= 5		&& The value applies to analyze the readyState change when communitacion socket has established.
-&& ======================================================================== &&
-&& Function Init
-&& ======================================================================== &&
-	Function Init
+	ResolveTimeOut 	= 5 	&& The value is applied to mapping hot names to IP addresses.
+	ConnectTimeOut 	= 180	&& 60 && The value is applied for establishing a communication socket with the target server.
+	SendTimeOut 	= 30 	&& The value applies to sending an individual packet of request data on the communication socket to the target server.
+	receiveTimeOut 	= 30 	&& The value applies to receiving a packet of response data from the target server.
+	waitTimeOut 	= 5 	&& The value applies to analyze the readyState change when communitacion socket has established.
+*========================================================================*
+* Procedure Init
+*========================================================================*
+	Procedure Init
 		With This
 			.lValidCall = True
-			.Version	= '1.5 (beta)'
+			.Version 	= '1.5 (beta)'
 			.lValidCall = True
-			.LastUpdate	= '2019-04-09 14:17:51'
+			.LastUpdate = '2020-10-09 14:17:51'
 			.lValidCall = True
-			.Author		= 'Irwin Rodríguez'
+			.Author 	= 'Irwin Rodríguez'
 			.lValidCall = True
-			.Email		= 'rodriguez.irwin@gmail.com'
+			.Email 		= 'rodriguez.irwin@gmail.com'
 			.__clean_request()
-			.oXMLHTTP	= .Null.
+			.oXMLHTTP 	= .Null.
 		EndWith
-	EndFunc
-&& ======================================================================== &&
-&& Hidden Function __create_object
-&& ======================================================================== &&
-	Hidden Function __create_object
+	EndProc
+*========================================================================*
+* Procedure __create_object
+*========================================================================*
+	Hidden Procedure __create_object
 		Local lCreated As boolean
 		lCreated = False
 		Try
-			This.oXMLHTTP	= Createobject('Msxml2.ServerXMLHTTP.6.0')
+			This.oXMLHTTP = Createobject('MSXML2.ServerXMLHTTP')
 			lCreated = True
+***************************************
+&&MESSAGEBOX('Msxml2.ServerXMLHTTP')
+***************************************
 		Catch
 		Endtry
+
 		If Not lCreated
 			Try
-				This.oXMLHTTP	= Createobject('MSXML2.ServerXMLHTTP')
+				This.oXMLHTTP = Createobject('Msxml2.ServerXMLHTTP.6.0')
 				lCreated = True
+***************************************
+&&MESSAGEBOX('Msxml2.ServerXMLHTTP.6.0')
+***************************************
 			Catch
 			Endtry
 		Endif
 		If Not lCreated
 			Try
-				This.oXMLHTTP	= Createobject('Microsoft.XMLHTTP')
+				This.oXMLHTTP = Createobject('Microsoft.XMLHTTP')
 				lCreated = True
+***************************************
+&&MESSAGEBOX('Msxml2.XMLHTTP')
+***************************************
 			Catch
 			Endtry
 		Endif
 
 		If Type('THIS.oXMLHTTP') <> 'O'
 			This.lValidCall = True
-			This.__setLastErrorText('could not create the XMLHTTP object')
+			This.__setLastErrorText('Could not create the XMLHTTP object')
 		Else
 			lCreated = True
 		Endif
 		Return lCreated
-	EndFunc
-&& ======================================================================== &&
-&& Function addRequest
-&& ======================================================================== &&
-	Function addRequest(tcVerb As String, tcURL As String) HelpString 'Carga una petición al objeto oRest.'
+	EndProc
+*========================================================================*
+* Procedure addRequest
+*========================================================================*
+	Procedure addRequest(tcVerb As String, tcURL As String) HelpString 'Carga una petición al objeto oRest.'
 		If Empty(tcVerb) .Or. Empty(tcURL)
 			This.lValidCall = True
 			This.__setLastErrorText('Invalid params')
@@ -116,39 +132,90 @@ Define Class Rest As Custom
 
 		This.lValidCall = True
 		This.URL = tcURL
-	EndFunc
-&& ======================================================================== &&
-&& Function addHeader
-&& ======================================================================== &&
-	Function addHeader(tcHeader As String, tcValue As String)
+	EndProc
+*========================================================================*
+* Procedure addHeader
+*========================================================================*
+	Procedure addHeader(tcHeader As String, tcValue As String)
 		If Empty(tcHeader) Or Empty(tcValue)
 			This.lValidCall = True
 			This.__setLastErrorText('Invalid params')
 		Endif
 
 *-- Add Header Content
-		This.lValidCall 	= True
-		This.ContentType 	= tcHeader
+		This.lValidCall = True
+		This.ContentType = tcHeader
 
 *-- Add Header Value
-		This.lValidCall 	= True
-		This.ContentValue 	= tcValue
-	EndFunc
-&& ======================================================================== &&
-&& Function addRequestBody
-&& ======================================================================== &&
-	Function addRequestBody(tcRequestBody As String) 'Agrega un contenido en formato JSON al cuerpo de la petición.'
+		This.lValidCall = True
+		This.ContentValue = tcValue
+	EndProc
+*========================================================================*
+* Procedure addHeader2
+*========================================================================*
+	Procedure addHeader2(tcHeader As String, tcValue As String)
+		If Empty(tcHeader) Or Empty(tcValue)
+			This.lValidCall = True
+			This.__setLastErrorText('Invalid params')
+		Endif
+
+*-- Add Header Content
+		This.lValidCall = True
+		This.ContentType2 = tcHeader
+
+*-- Add Header Value
+		This.lValidCall = True
+		This.ContentValue2 = tcValue
+	EndProc
+*========================================================================*
+* Procedure addHeader3
+*========================================================================*
+	Procedure addHeader3(tcHeader As String, tcValue As String)
+		If Empty(tcHeader) Or Empty(tcValue)
+			This.lValidCall = True
+			This.__setLastErrorText('Invalid params')
+		Endif
+
+*-- Add Header Content
+		This.lValidCall = True
+		This.ContentType3 = tcHeader
+
+*-- Add Header Value
+		This.lValidCall = True
+		This.ContentValue3 = tcValue
+	EndProc
+*========================================================================*
+* Procedure addProxy
+*========================================================================*
+	Procedure addProxy(tcHeader As String, tcValue As String)
+		If Empty(tcHeader) &&Or Empty(tcValue)
+			This.lValidCall = True
+			This.__setLastErrorText('Invalid params Proxy')
+		Endif
+
+*-- Add Proxy Content
+		This.lValidCall = True
+		This.ProxyType = tcHeader
+
+*-- Add Proxy Value
+		This.lValidCall = True
+		This.ProxyValue = tcValue
+	EndProc
+*========================================================================*
+* Procedure addRequestBody
+*========================================================================*
+	Procedure addRequestBody(tcRequestBody As String) 'Agrega un contenido en formato JSON al cuerpo de la petición.'
 		If Empty(tcRequestBody)
 			This.lValidCall = True
 			This.__setLastErrorText('Invalid request format')
 		Endif
 
-		This.lValidCall 	= True
-		This.requestBody 	= tcRequestBody
-	EndFunc
-&& ======================================================================== &&
-&& Function Send
-&& ======================================================================== &&
+		This.lValidCall = True
+		This.requestBody = tcRequestBody
+	EndProc
+*========================================================================*
+* Function Send 
+*========================================================================*
 	Function Send HelpString 'Envía la petición al servidor'
 *-- Validate Request Params
 		Local cMsg As String, lError As boolean
@@ -173,10 +240,10 @@ Define Class Rest As Custom
 		Endif
 
 		If This.ResolveTimeOut > 0 .And. This.ConnectTimeOut > 0 .And. This.SendTimeOut > 0 .And. This.receiveTimeOut > 0
-			This.ResolveTimeOut		= This.ResolveTimeOut 	* 1000
-			This.ConnectTimeOut		= This.ConnectTimeOut	* 1000
-			This.SendTimeOut		= This.SendTimeOut		* 1000
-			This.receiveTimeOut		= This.receiveTimeOut	* 1000
+			This.ResolveTimeOut = This.ResolveTimeOut * 1000
+			This.ConnectTimeOut = This.ConnectTimeOut * 1000
+			This.SendTimeOut = This.SendTimeOut * 1000
+			This.receiveTimeOut = This.receiveTimeOut * 1000
 
 			This.oXMLHTTP.setTimeouts(This.ResolveTimeOut, This.ConnectTimeOut, This.SendTimeOut, This.receiveTimeOut)
 		Endif
@@ -204,6 +271,19 @@ Define Class Rest As Custom
 
 		If Not Empty(This.ContentType) .And. Not Empty(This.ContentValue)
 			This.oXMLHTTP.setRequestHeader(This.ContentType, This.ContentValue)
+		Endif
+
+		If Not Empty(This.ContentType2) .And. Not Empty(This.ContentValue2)
+			This.oXMLHTTP.setRequestHeader(This.ContentType2, This.ContentValue2)
+		Endif
+
+		If Not Empty(This.ContentType3) .And. Not Empty(This.ContentValue3)
+			This.oXMLHTTP.setRequestHeader(This.ContentType3, This.ContentValue3)
+		Endif
+
+		If Not Empty(This.ProxyType) .And. Not Empty(This.ProxyValue)
+			This.oXMLHTTP.setProxy(2,This.ProxyType, "")
+&&This.oXMLHTTP.setRequestHeader(2,This.ProxyType, This.ProxyValue)
 		Endif
 
 		If !This.__isConnected()
@@ -241,85 +321,96 @@ Define Class Rest As Custom
 			Endif
 		Enddo
 		With This
-			.lValidCall 	= True
-			.Response 		= .__html_entity_decode(.oXMLHTTP.ResponseText)
-			.lValidCall 	= True
-			.Status			= .oXMLHTTP.Status
-			.lValidCall 	= True
-			.StatusText		= .oXMLHTTP.StatusText
-			.lValidCall 	= True
-			.ResponseText	= .Response
-			.lValidCall 	= True
-			.ReadyState		= .oXMLHTTP.ReadyState
-			.oXMLHTTP 		= .Null.
+			.lValidCall = True
+			.Response = .__html_entity_decode(.oXMLHTTP.ResponseText)
+			.lValidCall = True
+			.Status = .oXMLHTTP.Status
+			.lValidCall = True
+			.StatusText = .oXMLHTTP.StatusText
+			.lValidCall = True
+			.ResponseText = .Response
+			.lValidCall = True
+			.ReadyState = .oXMLHTTP.ReadyState
+			.oXMLHTTP = .Null.
 		Endwith
 	EndFunc
-&& ======================================================================== &&
-&& Hidden Function __isConnected
-&& ======================================================================== &&
+*========================================================================*
+* Function __isConnected
+*========================================================================*
 	Hidden Function __isConnected
 		Declare Integer InternetGetConnectedState In WinInet Integer @lpdwFlags, Integer dwReserved
 		Local lnFlags, lnReserved, lnSuccess
-		lnFlags		= 0
-		lnReserved	= 0
-		lnSuccess	= InternetGetConnectedState(@lnFlags,lnReserved)
+		lnFlags = 0
+		lnReserved = 0
+		lnSuccess = InternetGetConnectedState(@lnFlags,lnReserved)
 		Clear Dlls
 		Return (lnSuccess=1)
 	EndFunc
-&& ======================================================================== &&
-&& Hidden Function __setLastErrorText
-&& ======================================================================== &&
-	Hidden Function __setLastErrorText(tcErrorText As String)
+*========================================================================*
+* Procedure __setLastErrorText
+*========================================================================*
+	Hidden Procedure __setLastErrorText(tcErrorText As String)
 		This.lValidCall = True
 		This.LastErrorText = Iif(!Empty(tcErrorText), tcErrorText, '')
-	EndFunc
-&& ======================================================================== &&
-&& Hidden Function __clean_Response
-&& ======================================================================== &&
-	Hidden Function __clean_Response
+	EndProc
+*========================================================================*
+* Procedure __clean_Response
+*========================================================================*
+	Hidden Procedure __clean_Response
 		With This
-			.lValidCall 	= True
-			.Response 		= ''
-			.lValidCall 	= True
-			.Status			= 0
-			.lValidCall 	= True
-			.StatusText		= ''
-			.lValidCall 	= True
-			.ResponseText	= ''
-			.lValidCall 	= True
-			.ReadyState		= 0
+			.lValidCall = True
+			.Response = ''
+			.lValidCall = True
+			.Status = 0
+			.lValidCall = True
+			.StatusText = ''
+			.lValidCall = True
+			.ResponseText = ''
+			.lValidCall = True
+			.ReadyState = 0
 		Endwith
-	EndFunc
-&& ======================================================================== &&
-&& Hidden Function __clean_request
-&& ======================================================================== &&
-	Hidden Function __clean_request
+	EndProc
+*========================================================================*
+* Procedure __clean_request
+*========================================================================*
+	Hidden Procedure __clean_request
 		With This
-			.lValidCall 	= True
-			.Response 		= ''
-			.lValidCall 	= True
-			.Verb 			= ''
-			.lValidCall 	= True
-			.URL 			= ''
-			.lValidCall 	= True
-			.ContentType 	= ''
-			.lValidCall 	= True
-			.ContentValue 	= ''
-			.lValidCall 	= True
-			.requestBody 	= ''
-			.lValidCall 	= True
-			.Status			= 0
-			.lValidCall 	= True
-			.StatusText		= ''
-			.lValidCall 	= True
-			.ResponseText	= ''
-			.lValidCall 	= True
-			.ReadyState		= 0
+			.lValidCall = True
+			.Response = ''
+			.lValidCall = True
+			.Verb = ''
+			.lValidCall = True
+			.URL = ''
+			.lValidCall = True
+			.ContentType = ''
+			.lValidCall = True
+			.ContentValue = ''
+			.lValidCall = True
+			.ContentType2 = ''
+			.lValidCall = True
+			.ContentValue2 = ''
+			.lValidCall = True
+			.ContentType3 = ''
+			.lValidCall = True
+			.ContentValue3 = ''
+			.ProxyType = ''
+			.lValidCall = True
+			.ProxyValue = ''
+			.lValidCall = True
+			.requestBody = ''
+			.lValidCall = True
+			.Status = 0
+			.lValidCall = True
+			.StatusText = ''
+			.lValidCall = True
+			.ResponseText = ''
+			.lValidCall = True
+			.ReadyState = 0
 		Endwith
-	EndFunc
-&& ======================================================================== &&
-&& Hidden Function __html_entity_decode
-&& ======================================================================== &&
+	EndProc
+*========================================================================*
+* Function __html_entity_decode
+*========================================================================*
 	Hidden Function __html_entity_decode(cText As Memo) As Memo
 		cText = Strtran(cText, "\u00a0", "Â")
 		cText = Strtran(cText, "\u00a1", "¡")
@@ -425,234 +516,324 @@ Define Class Rest As Custom
 		cText = Strtran(cText, "\u0025", "%")
 		Return cText
 	EndFunc
-&& ======================================================================== &&
-&& Hidden Function LastErrorText_Assign
-&& ======================================================================== &&
-	Hidden Function LastErrorText_Assign(vNewVal)
+*========================================================================*
+* Procedure LastErrorText_Assign
+*========================================================================*
+	Hidden Procedure LastErrorText_Assign(vNewVal)
 		If This.lValidCall
 			This.lValidCall = False
 			This.LastErrorText = m.vNewVal
 		Endif
-	EndFunc
-&& ======================================================================== &&
-&& Hidden Function Version_Assign
-&& ======================================================================== &&
-	Hidden Function Version_Assign(vNewVal)
+	EndProc
+*========================================================================*
+* Procedure Version_Assign
+*========================================================================*
+	Hidden Procedure Version_Assign(vNewVal)
 		If This.lValidCall
 			This.lValidCall = False
 			This.Version = m.vNewVal
 		Endif
-	EndFunc
-&& ======================================================================== &&
-&& Hidden Function Version_Access
-&& ======================================================================== &&
+	EndProc
+*========================================================================*
+* Function Version_Access
+*========================================================================*
 	Hidden Function Version_Access
 		Return This.Version
 	EndFunc
-&& ======================================================================== &&
-&& Hidden Function LastUpdate_Assign
-&& ======================================================================== &&
-	Hidden Function LastUpdate_Assign(vNewVal)
+*========================================================================*
+* Procedure LastUpdate_Assign
+*========================================================================*
+	Hidden Procedure LastUpdate_Assign(vNewVal)
 		If This.lValidCall
 			This.lValidCall = False
 			This.LastUpdate = m.vNewVal
 		Endif
-	EndFunc
-&& ======================================================================== &&
-&& Hidden Function LastUpdate_Access
-&& ======================================================================== &&
+	EndProc
+*========================================================================*
+* Function LastUpdate_Access
+*========================================================================*
 	Hidden Function LastUpdate_Access
 		Return This.LastUpdate
 	EndFunc
-&& ======================================================================== &&
-&& Hidden Function Author_Assign
-&& ======================================================================== &&
-	Hidden Function Author_Assign(vNewVal)
+*========================================================================*
+* Procedure Author_Assign
+*========================================================================*
+	Hidden Procedure Author_Assign(vNewVal)
 		If This.lValidCall
 			This.lValidCall = False
 			This.Author = m.vNewVal
 		Endif
-	EndFunc
-&& ======================================================================== &&
-&& Hidden Function Author_Access
-&& ======================================================================== &&
+	EndProc
+*========================================================================*
+* Function Author_Access
+*========================================================================*
 	Hidden Function Author_Access
 		Return This.Author
 	EndFunc
-&& ======================================================================== &&
-&& Hidden Function Email_Assign
-&& ======================================================================== &&
-	Hidden Function Email_Assign(vNewVal)
+*========================================================================*
+* Procedure Email_Assign
+*========================================================================*
+	Hidden Procedure Email_Assign(vNewVal)
 		If This.lValidCall
 			This.lValidCall = False
 			This.Email = m.vNewVal
 		Endif
-	EndFunc
-&& ======================================================================== &&
-&& Hidden Function Email_Access
-&& ======================================================================== &&
+	EndProc
+*========================================================================*
+* Function Email_Access
+*========================================================================*
 	Hidden Function Email_Access
 		Return This.Email
 	EndFunc
-&& ======================================================================== &&
-&& Hidden Function RequestBody_Assign
-&& ======================================================================== &&
-	Hidden Function RequestBody_Assign(vNewVal)
+*========================================================================*
+* Procedure RequestBody_Assign
+*========================================================================*
+	Hidden Procedure RequestBody_Assign(vNewVal)
 		If This.lValidCall
 			This.lValidCall = False
 			This.requestBody = m.vNewVal
 		Endif
-	EndFunc
-&& ======================================================================== &&
-&& Hidden Function RequestBody_Access
-&& ======================================================================== &&
+	EndProc
+*========================================================================*
+* Function RequestBody_Access
+*========================================================================*
 	Hidden Function RequestBody_Access
 		Return This.requestBody
 	EndFunc
-&& ======================================================================== &&
-&& Hidden Function Verb_Access
-&& ======================================================================== &&
+*========================================================================*
+* Function Verb_Access
+*========================================================================*
 	Hidden Function Verb_Access
 		Return This.Verb
 	EndFunc
-&& ======================================================================== &&
-&& Hidden Function URL_Access
-&& ======================================================================== &&
+*========================================================================*
+* Function URL_Access
+*========================================================================*
 	Hidden Function URL_Access
 		Return This.URL
 	EndFunc
-&& ======================================================================== &&
-&& Hidden Function RequestBody_Access
-&& ======================================================================== &&
+*========================================================================*
+* Function RequestBody_Access
+*========================================================================*
 	Hidden Function RequestBody_Access
 		Return This.requestBody
 	EndFunc
-&& ======================================================================== &&
-&& Hidden Function Response_Access
-&& ======================================================================== &&
+*========================================================================*
+* Function Response_Access
+*========================================================================*
 	Hidden Function Response_Access
 		Return This.Response
 	EndFunc
-&& ======================================================================== &&
-&& Hidden Function Verb_Assign
-&& ======================================================================== &&
-	Hidden Function Verb_Assign(vNewVal)
+*========================================================================*
+* Procedure Verb_Assign
+*========================================================================*
+	Hidden Procedure Verb_Assign(vNewVal)
 		If This.lValidCall
 			This.lValidCall = False
 			This.Verb = m.vNewVal
 		Endif
-	EndFunc
-&& ======================================================================== &&
-&& Hidden Function URL_Assign
-&& ======================================================================== &&
-	Hidden Function URL_Assign(vNewVal)
+	EndProc
+*========================================================================*
+* Procedure URL_Assign
+*========================================================================*
+	Hidden Procedure URL_Assign(vNewVal)
 		If This.lValidCall
 			This.lValidCall = False
 			This.URL = m.vNewVal
 		Endif
-	EndFunc
-&& ======================================================================== &&
-&& Hidden Function RequestBody_Assign
-&& ======================================================================== &&
-	Hidden Function RequestBody_Assign(vNewVal)
+	EndProc
+*========================================================================*
+* Procedure RequestBody_Assign
+*========================================================================*
+	Hidden Procedure RequestBody_Assign(vNewVal)
 		If This.lValidCall
 			This.lValidCall = False
 			This.requestBody = m.vNewVal
 		Endif
-	EndFunc
-&& ======================================================================== &&
-&& Hidden Function Response_Assign
-&& ======================================================================== &&
-	Hidden Function Response_Assign(vNewVal)
+	EndProc
+*========================================================================*
+* Procedure Response_Assign
+*========================================================================*
+	Hidden Procedure Response_Assign(vNewVal)
 		If This.lValidCall
 			This.lValidCall = False
 			This.Response = m.vNewVal
 		Endif
-	EndFunc
-&& ======================================================================== &&
-&& Hidden Function ContentType_Access
-&& ======================================================================== &&
+	EndProc
+*========================================================================*
+* Function ContentType_Access
+*========================================================================*
 	Hidden Function ContentType_Access
 		Return This.ContentType
 	EndFunc
-&& ======================================================================== &&
-&& Hidden Function ContentType_Assign
-&& ======================================================================== &&
-	Hidden Function ContentType_Assign(vNewVal)
+*========================================================================*
+* Function ContentType2_Access
+*========================================================================*
+	Hidden Function ContentType2_Access
+		Return This.ContentType2
+	EndFunc
+*========================================================================*
+* Function ContentType3_Access
+*========================================================================*
+	Hidden Function ContentType3_Access
+		Return This.ContentType3
+	EndFunc
+*========================================================================*
+* Function ProxyType_Access
+*========================================================================*
+	Hidden Function ProxyType_Access
+		Return This.ProxyType
+	EndFunc
+*========================================================================*
+* Procedure ContentType_Assign
+*========================================================================*
+	Hidden Procedure ContentType_Assign(vNewVal)
 		If This.lValidCall
 			This.lValidCall = False
 			This.ContentType = m.vNewVal
 		Endif
-	EndFunc
-&& ======================================================================== &&
-&& Hidden Function ContentValue_Access
-&& ======================================================================== &&
+	EndProc
+*========================================================================*
+* Procedure ContentType2_Assign
+*========================================================================*
+	Hidden Procedure ContentType2_Assign(vNewVal)
+		If This.lValidCall
+			This.lValidCall = False
+			This.ContentType2 = m.vNewVal
+		Endif
+	EndProc
+*========================================================================*
+* Procedure ContentType3_Assign
+*========================================================================*
+	Hidden Procedure ContentType3_Assign(vNewVal)
+		If This.lValidCall
+			This.lValidCall = False
+			This.ContentType3 = m.vNewVal
+		Endif
+	EndProc
+*========================================================================*
+* Procedure ProxyType_Assign
+*========================================================================*
+	Hidden Procedure ProxyType_Assign(vNewVal)
+		If This.lValidCall
+			This.lValidCall = False
+			This.ProxyType = m.vNewVal
+		Endif
+	EndProc
+*========================================================================*
+* Function ContentValue_Access
+*========================================================================*
 	Hidden Function ContentValue_Access
 		Return This.ContentValue
 	EndFunc
-&& ======================================================================== &&
-&& Hidden Function ContentValue_Assign
-&& ======================================================================== &&
-	Hidden Function ContentValue_Assign(vNewVal)
+*========================================================================*
+* Function ContentValue2_Access
+*========================================================================*
+	Hidden Function ContentValue2_Access
+		Return This.ContentValue2
+	EndFunc
+*========================================================================*
+* Function ContentValue3_Access
+*========================================================================*
+	Hidden Function ContentValue3_Access
+		Return This.ContentValue3
+	EndFunc
+*========================================================================*
+* Function ProxyValue_Access
+*========================================================================*
+	Hidden Function ProxyValue_Access
+		Return This.ProxyValue
+	EndFunc
+*========================================================================*
+* Procedure ContentValue_Assign
+*========================================================================*
+	Hidden Procedure ContentValue_Assign(vNewVal)
 		If This.lValidCall
 			This.lValidCall = False
 			This.ContentValue = m.vNewVal
 		Endif
-	EndFunc
-&& ======================================================================== &&
-&& Hidden Function STATUS_Access
-&& ======================================================================== &&
+	EndProc
+*========================================================================*
+* Procedure ContentValue2_Assign
+*========================================================================*
+	Hidden Procedure ContentValue2_Assign(vNewVal)
+		If This.lValidCall
+			This.lValidCall = False
+			This.ContentValue2 = m.vNewVal
+		Endif
+	EndProc
+*========================================================================*
+* Procedure ContentValue3_Assign
+*========================================================================*
+	Hidden Procedure ContentValue3_Assign(vNewVal)
+		If This.lValidCall
+			This.lValidCall = False
+			This.ContentValue3 = m.vNewVal
+		Endif
+	EndProc
+*========================================================================*
+* Procedure ProxyValue_Assign
+*========================================================================*
+	Hidden Procedure ProxyValue_Assign(vNewVal)
+		If This.lValidCall
+			This.lValidCall = False
+			This.ProxyValue = m.vNewVal
+		Endif
+	EndProc
+*========================================================================*
+* Function STATUS_Access
+*========================================================================*
 	Hidden Function STATUS_Access
 		Return This.Status
 	EndFunc
-&& ======================================================================== &&
-&& Hidden Function StatusText_Access
-&& ======================================================================== &&
+*========================================================================*
+* Function StatusText_Access
+*========================================================================*
 	Hidden Function StatusText_Access
 		Return This.StatusText
 	EndFunc
-&& ======================================================================== &&
-&& Hidden Function ResponseText_Access
-&& ======================================================================== &&
+*========================================================================*
+* Function ResponseText_Access
+*========================================================================*
 	Hidden Function ResponseText_Access
 		Return This.ResponseText
 	EndFunc
-&& ======================================================================== &&
-&& Hidden Function ReadyState_Access
-&& ======================================================================== &&
+*========================================================================*
+* Function ReadyState_Access
+*========================================================================*
 	Hidden Function ReadyState_Access
 		Return This.ReadyState
 	EndFunc
-&& ======================================================================== &&
-&& Hidden Function STATUS_Assign
-&& ======================================================================== &&
-	Hidden Function STATUS_Assign(vNewVal)
+*========================================================================*
+* Procedure STATUS_Assign
+*========================================================================*
+	Hidden Procedure STATUS_Assign(vNewVal)
 		If This.lValidCall
 			This.Status = m.vNewVal
 		Endif
-	EndFunc
-&& ======================================================================== &&
-&& Hidden Function StatusText_Assign
-&& ======================================================================== &&
-	Hidden Function StatusText_Assign(vNewVal)
+	EndProc
+*========================================================================*
+* Procedure StatusText_Assign
+*========================================================================*
+	Hidden Procedure StatusText_Assign(vNewVal)
 		If This.lValidCall
 			This.StatusText = m.vNewVal
 		Endif
-	EndFunc
-&& ======================================================================== &&
-&& Hidden Function ResponseText_Assign
-&& ======================================================================== &&
-	Hidden Function ResponseText_Assign(vNewVal)
+	EndProc
+*========================================================================*
+* Procedure ResponseText_Assign
+*========================================================================*
+	Hidden Procedure ResponseText_Assign(vNewVal)
 		If This.lValidCall
 			This.ResponseText = m.vNewVal
 		Endif
-	EndFunc
-&& ======================================================================== &&
-&& Hidden Function ReadyState_Assign
-&& ======================================================================== &&
-	Hidden Function ReadyState_Assign(vNewVal)
+	EndProc
+*========================================================================*
+* Procedure ReadyState_Assign
+*========================================================================*
+	Hidden Procedure ReadyState_Assign(vNewVal)
 		If This.lValidCall
 			This.ReadyState = m.vNewVal
 		Endif
-	EndFunc
+	EndProc
 Enddefine
