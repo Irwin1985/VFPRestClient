@@ -343,7 +343,7 @@ Define Class Rest As Custom
 		lnFlags = 0
 		lnReserved = 0
 		lnSuccess = InternetGetConnectedState(@lnFlags,lnReserved)
-		Clear Dll InternetGetConnectedState
+		Clear Dlls InternetGetConnectedState
 		Return (lnSuccess=1)
 	EndFunc
 *========================================================================*
