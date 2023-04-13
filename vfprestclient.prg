@@ -17,6 +17,7 @@ Define Class Rest As Custom
 	Hidden ProxyType
 	Hidden ProxyValue
 	Hidden isWinHttp
+	Hidden oHeaders
 
 	Version = ''
 	LastUpdate = ''
@@ -73,6 +74,7 @@ Define Class Rest As Custom
 			.Email 		= 'rodriguez.irwin@gmail.com'
 			.__clean_request()
 			.oXMLHTTP 	= .Null.
+			.oHeaders = CreateObject("Collection")
 		EndWith
 	EndProc
 *========================================================================*
@@ -152,49 +154,9 @@ Define Class Rest As Custom
 			This.lValidCall = True
 			This.__setLastErrorText('Invalid params')
 		Endif
-
-*-- Add Header Content
-		This.lValidCall = True
-		This.ContentType = tcHeader
-
-*-- Add Header Value
-		This.lValidCall = True
-		This.ContentValue = tcValue
+		this.oHeaders.Add(tcValue, tcHeader)
 	EndProc
-*========================================================================*
-* Procedure addHeader2
-*========================================================================*
-	Procedure addHeader2(tcHeader As String, tcValue As String)
-		If Empty(tcHeader) Or Empty(tcValue)
-			This.lValidCall = True
-			This.__setLastErrorText('Invalid params')
-		Endif
 
-*-- Add Header Content
-		This.lValidCall = True
-		This.ContentType2 = tcHeader
-
-*-- Add Header Value
-		This.lValidCall = True
-		This.ContentValue2 = tcValue
-	EndProc
-*========================================================================*
-* Procedure addHeader3
-*========================================================================*
-	Procedure addHeader3(tcHeader As String, tcValue As String)
-		If Empty(tcHeader) Or Empty(tcValue)
-			This.lValidCall = True
-			This.__setLastErrorText('Invalid params')
-		Endif
-
-*-- Add Header Content
-		This.lValidCall = True
-		This.ContentType3 = tcHeader
-
-*-- Add Header Value
-		This.lValidCall = True
-		This.ContentValue3 = tcValue
-	EndProc
 *========================================================================*
 * Procedure addProxy
 *========================================================================*
@@ -279,22 +241,16 @@ Define Class Rest As Custom
 			This.__setLastErrorText('could not open the communication socket.')
 			Return False
 		Endif
-
-		If Not Empty(This.ContentType) .And. Not Empty(This.ContentValue)
-			This.oXMLHTTP.setRequestHeader(This.ContentType, This.ContentValue)
-		Endif
-
-		If Not Empty(This.ContentType2) .And. Not Empty(This.ContentValue2)
-			This.oXMLHTTP.setRequestHeader(This.ContentType2, This.ContentValue2)
-		Endif
-
-		If Not Empty(This.ContentType3) .And. Not Empty(This.ContentValue3)
-			This.oXMLHTTP.setRequestHeader(This.ContentType3, This.ContentValue3)
-		Endif
+		* Add Headers
+		Local i
+		For i = 1 to this.oHeaders.Count
+			This.oXMLHTTP.setRequestHeader(this.oHeaders.GetKey(i), this.oHeaders.Item(i))
+		EndFor
+		* Clean oHeaders
+		this.oHeaders = CreateObject("Collection")
 
 		If Not Empty(This.ProxyType) .And. Not Empty(This.ProxyValue)
 			This.oXMLHTTP.setProxy(2,This.ProxyType, "")
-&&This.oXMLHTTP.setRequestHeader(2,This.ProxyType, This.ProxyValue)
 		Endif
 
 		If !This.__isConnected()
