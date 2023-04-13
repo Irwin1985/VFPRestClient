@@ -2,6 +2,11 @@
 
 **VFPRestClient** is a simple **Microsoft XMLHTTP Object Wrapper** for communicating client requests with remote web services like API Rest.
 
+Si te gusta mi trabajo puedes apoyarme con un donativo:   
+[![DONATE!](http://www.pngall.com/wp-content/uploads/2016/05/PayPal-Donate-Button-PNG-File-180x100.png)](https://www.paypal.com/donate/?hosted_button_id=LXQYXFP77AD2G) 
+
+    Gracias por tu apoyo!
+
 **NOTE: you can combine this wrapper with [JSONFox](https://github.com/Irwin1985/JSONFox) to complete the REST Client communications** 
 ### Project Manager
 
