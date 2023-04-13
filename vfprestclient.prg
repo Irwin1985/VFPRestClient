@@ -16,6 +16,7 @@ Define Class Rest As Custom
 	Hidden ContentValue3
 	Hidden ProxyType
 	Hidden ProxyValue
+	Hidden isWinHttp
 
 	Version = ''
 	LastUpdate = ''
@@ -81,13 +82,23 @@ Define Class Rest As Custom
 		Local lCreated As boolean
 		lCreated = False
 		Try
-			This.oXMLHTTP = Createobject('MSXML2.ServerXMLHTTP')
-			lCreated = True
-***************************************
-&&MESSAGEBOX('Msxml2.ServerXMLHTTP')
-***************************************
+			This.oXMLHTTP = Createobject('WinHttp.WinHttpRequest.5.1')
+			This.oXMLHTTP.option(9) = 2720 && TLS SUPPORT
+			this.isWinHttp = .t.
+			lCreated = True			
 		Catch
-		Endtry
+		EndTry
+		
+		If Not lCreated
+			Try
+				This.oXMLHTTP = Createobject('MSXML2.ServerXMLHTTP')
+				lCreated = True
+	***************************************
+	&&MESSAGEBOX('Msxml2.ServerXMLHTTP')
+	***************************************
+			Catch
+			EndTry
+		EndIf
 
 		If Not lCreated
 			Try
@@ -263,7 +274,7 @@ Define Class Rest As Custom
 			Return False
 		Endif
 
-		If This.oXMLHTTP.ReadyState <> HTTP_OPEN
+		If !this.isWinHttp and this.__getReadyState() <> HTTP_OPEN
 			This.lValidCall = True
 			This.__setLastErrorText('could not open the communication socket.')
 			Return False
@@ -316,7 +327,7 @@ Define Class Rest As Custom
 
 		nSeg = Seconds() + This.waitTimeOut
 		Do While Seconds() <= nSeg
-			If This.oXMLHTTP.ReadyState <> HTTP_OPEN
+			If this.__getReadyState() <> HTTP_OPEN
 				Exit && There's an answer.
 			Endif
 		Enddo
@@ -330,9 +341,16 @@ Define Class Rest As Custom
 			.lValidCall = True
 			.ResponseText = .Response
 			.lValidCall = True
-			.ReadyState = .oXMLHTTP.ReadyState
+			.ReadyState = this.__getReadyState()
 			.oXMLHTTP = .Null.
 		Endwith
+	EndFunc
+	
+	Hidden function __getReadyState
+		If this.isWinHttp
+			Return This.oXMLHTTP.status
+		EndIf 
+		Return This.oXMLHTTP.ReadyState
 	EndFunc
 *========================================================================*
 * Function __isConnected
