@@ -81,55 +81,35 @@ Define Class Rest As Custom
 * Procedure __create_object
 *========================================================================*
 	Hidden Procedure __create_object
-		Local lCreated As boolean
-		lCreated = False
-		Try
-			This.oXMLHTTP = Createobject('WinHttp.WinHttpRequest.5.1')
-			This.oXMLHTTP.option(9) = 2720 && TLS SUPPORT
-			this.isWinHttp = .t.
-			lCreated = True			
-		Catch
-		EndTry
+		Set Step On
+		Local i, laComponents[4], lbCreated
+		laComponents[1] = "WinHttp.WinHttpRequest.5.1"
+		laComponents[2] = "MSXML2.ServerXMLHTTP"
+		laComponents[3] = "Msxml2.ServerXMLHTTP.6.0"
+		laComponents[4] = "Microsoft.XMLHTTP"
 		
-		If Not lCreated
+		For i = 1 to Alen(laComponents)
 			Try
-				This.oXMLHTTP = Createobject('MSXML2.ServerXMLHTTP')
-				lCreated = True
-	***************************************
-	&&MESSAGEBOX('Msxml2.ServerXMLHTTP')
-	***************************************
+				This.oXMLHTTP = Createobject(laComponents[i])
 			Catch
 			EndTry
+			If Type('this.oXMLHTTP') == 'O'
+				lbCreated = .t.
+				Exit
+			EndIf
+		EndFor
+
+		If i == 1 && WinHttp
+			This.oXMLHTTP.option(9) = 2720 && TLS SUPPORT
+			this.isWinHttp = .t.
 		EndIf
-
-		If Not lCreated
-			Try
-				This.oXMLHTTP = Createobject('Msxml2.ServerXMLHTTP.6.0')
-				lCreated = True
-***************************************
-&&MESSAGEBOX('Msxml2.ServerXMLHTTP.6.0')
-***************************************
-			Catch
-			Endtry
-		Endif
-		If Not lCreated
-			Try
-				This.oXMLHTTP = Createobject('Microsoft.XMLHTTP')
-				lCreated = True
-***************************************
-&&MESSAGEBOX('Msxml2.XMLHTTP')
-***************************************
-			Catch
-			Endtry
-		Endif
-
-		If Type('THIS.oXMLHTTP') <> 'O'
+		
+		If not lbCreated
 			This.lValidCall = True
 			This.__setLastErrorText('Could not create the XMLHTTP object')
-		Else
-			lCreated = True
-		Endif
-		Return lCreated
+		EndIf
+
+		Return lbCreated
 	EndProc
 *========================================================================*
 * Procedure addRequest
