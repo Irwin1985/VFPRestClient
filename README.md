@@ -1,6 +1,6 @@
 # VFPRestClient ![](images/prg.gif)  
 
-## VFPRestClient es una clase que permite realizar peticiones HTTP a un servidor REST y obtener su respuesta. Internamente utiliza una instancia de uno de los siguientes componentes ActiveX: 
+VFPRestClient es una clase que permite realizar peticiones HTTP a un servidor REST y obtener su respuesta. Internamente utiliza una instancia de uno de los siguientes componentes ActiveX: 
 
 1. WinHttp.WinHttpRequest.5.1
 2. MSXML2.ServerXMLHTTP.6.0
