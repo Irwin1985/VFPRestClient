@@ -24,6 +24,7 @@ Define Class Rest As Custom
 	StatusText 		= ''
 	ResponseText 	= ''
 	ReadyState 		= 0
+	ShowErrors		= .t.
 
 	Get 		= 'GET'
 	POST 		= 'POST'
@@ -198,7 +199,10 @@ Define Class Rest As Custom
 		Endfor
 
 		If !lbCreated
-			MessageBox('No se pudo crear la instancia del objeto HTTP.', 16, 'VFPRestClient')
+			If this.ShowErrors
+				this.LastErrorText = 'No se pudo crear la instancia del objeto HTTP.'
+				MessageBox(this.LastErrorText, 16, 'VFPRestClient')
+			EndIf
 			Return .f.
 		Endif
 
@@ -209,7 +213,10 @@ Define Class Rest As Custom
 	Procedure addRequest(tcVerb, tcURL, tbSyncMode)
 		With This
 			If Pcount() <= 1
-				MessageBox('Faltan parámetros: tanto el método como la dirección son obligatorios.', 16, 'VFPRestClient')
+				If this.ShowErrors
+					this.LastErrorText = 'Faltan parámetros: tanto el método como la dirección son obligatorios.'
+					MessageBox(this.LastErrorText, 16, 'VFPRestClient')
+				EndIf
 				Return
 			Endif
 			.cleanRequest()
@@ -222,7 +229,10 @@ Define Class Rest As Custom
 
 	Procedure AddHeader(tcHeader, tcValue)
 		If Pcount() != 2
-			MessageBox('Faltan parámetros: tanto la clave como el contenido de header son obligatorios.', 16, 'VFPRestClient')
+			If this.ShowErrors
+				this.LastErrorText = 'Faltan parámetros: tanto la clave como el contenido de header son obligatorios.'
+				MessageBox(this.LastErrorText, 16, 'VFPRestClient')
+			EndIf
 			Return .f.
 		Endif
 		This.oHeaders.Add(tcValue, tcHeader)
@@ -231,7 +241,10 @@ Define Class Rest As Custom
 
 	Procedure addProxy(tcHeader, tcValue)
 		If Empty(tcHeader) or Type('tcHeader') != 'C'
-			MessageBox('Nombre inválido', 16, "VfpRestClient")
+			If this.ShowErrors
+				this.LastErrorText = 'Nombre inválido'
+				MessageBox(this.LastErrorText, 16, "VfpRestClient")
+			EndIf
 			Return .f.
 		Endif
 		This.ProxyType = tcHeader
@@ -241,12 +254,18 @@ Define Class Rest As Custom
 
 	Procedure addRequestBody(tcRequestBody)
 		If Pcount() = 0
-			MessageBox('El contenido del cuerpo es obligatorio.', 16, "VfpRestClient")
+			If this.ShowErrors
+				this.LastErrorText = 'El contenido del cuerpo es obligatorio.'
+				MessageBox(this.LastErrorText, 16, "VfpRestClient")
+			EndIf
 			Return .f.
 		EndIf
 
 		If Type('tcRequestBody') != 'C'
-			MessageBox('El contenido del cuerpo debe ser de tipo String.', 16, "VfpRestClient")
+			If this.ShowErrors
+				this.LastErrorText = 'El contenido del cuerpo debe ser de tipo String.'
+				MessageBox(this.LastErrorText, 16, "VfpRestClient")
+			EndIf
 			Return .f.
 		EndIf
 		This.requestBody = tcRequestBody
@@ -255,12 +274,18 @@ Define Class Rest As Custom
 
 	Function Send
 		If !This.isConnected()
-			MessageBox('En este momento la señal de internet no está disponible, inténtelo más tarde.', 16, "VfpRestClient")
+			If this.ShowErrors
+				this.LastErrorText = 'En este momento la señal de internet no está disponible, inténtelo más tarde.'
+				MessageBox(this.LastErrorText, 16, "VfpRestClient")
+			EndIf
 			Return .F.
 		Endif
 
 		If Empty(This.Verb) or Empty(This.URL)
-			MessageBox('Debe ejecutar el método AddRequest() antes de continuar.', 16, "VfpRestClient")
+			If this.ShowErrors
+				this.LastErrorText = 'Debe ejecutar el método AddRequest() antes de continuar.'
+				MessageBox(this.LastErrorText, 16, "VfpRestClient")
+			EndIf
 			Return .f.
 		Endif
 
@@ -283,7 +308,10 @@ Define Class Rest As Custom
 
 		This.oXMLHTTP.Open(This.Verb, This.URL, This.SyncMode)
 		If !This.isWinHttp And This.getReadyState() <> HTTP_OPEN
-			MessageBox('No se pudo inicializar la solicitud [' + this.verb + '] a la dirección [' + this.url + ']', 16, "VfpRestClient")
+			If this.ShowErrors
+				this.LastErrorText = 'No se pudo inicializar la solicitud [' + this.verb + '] a la dirección [' + this.url + ']'
+				MessageBox(this.LastErrorText, 16, "VfpRestClient")
+			EndIf
 			Return .F.
 		Endif
 
