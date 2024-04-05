@@ -61,6 +61,15 @@ Define Class Rest As Custom
 		Endwith
 	Endproc
 
+	Function GetResponseHeader(tcHeader)
+		Local lcResponse
+		lcResponse = ""
+		Try
+			lcResponse = This.oXMLHTTP.getResponseHeader(tcHeader)
+		Catch
+		EndTry
+		Return lcResponse
+	EndFunc
 
 	Hidden Procedure createReplacements
 		This.oReplacement = Createobject("Collection")
@@ -178,10 +187,10 @@ Define Class Rest As Custom
 
 		Local i, loProviders, lbCreated
 		loProviders = Createobject("Collection")
-		loProviders.Add("Msxml2.ServerXMLHTTP.6.0")
+		loProviders.Add("Microsoft.XMLHTTP")
 		loProviders.Add("WinHttp.WinHttpRequest.5.1")
 		loProviders.Add("MSXML2.ServerXMLHTTP")
-		loProviders.Add("Microsoft.XMLHTTP")
+		loProviders.Add("Msxml2.ServerXMLHTTP.6.0")
 
 		For Each lcProvider In loProviders
 			Try
