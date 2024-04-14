@@ -15,7 +15,7 @@ Define Class Rest As Custom
 
 	oXMLHTTP 		= .Null.
 	Version 		= '1.6'
-	LastUpdate 		= '2023-06-11 12:26'
+	LastUpdate 		= '2024-04-14 21:11'
 	Author 			= 'Irwin Rodríguez'
 	Email 			= 'rodriguez.irwin@gmail.com'
 	LastErrorText 	= ''
@@ -405,6 +405,6 @@ Define Class Rest As Custom
 				tcText = Strtran(tcText, lcKey, lcValue)
 			Endif
 		Endfor
-		Return Strconv(tcText, 11)
+		Return tcText
 	Endfunc
 Enddefine
