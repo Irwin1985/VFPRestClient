@@ -395,6 +395,19 @@ Define Class Rest As Custom
 		Endwith
 	Endproc
 
+	Function DownloadFromURL(tcURL, tcFileName)
+		declare integer DeleteUrlCacheEntry in WinInet.DLL string
+		declare LONG URLDownloadToFile IN URLMON.DLL LONG, STRING, STRING, LONG, LONG
+		Local lbResult
+		Try
+			=DeleteUrlCacheEntry(tcURL)
+			=URLDownloadToFile(0,tcURL,tcFileName,0,0)
+			lbResult = .T.
+		Catch
+		EndTry
+		Clear Dlls DeleteUrlCacheEntry, URLDownloadToFile
+		Return lbResult
+	EndFunc
 
 	Hidden Function htmlEntityDecode(tcText As Memo)
 		Local i, lcKey, lcValue
