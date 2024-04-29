@@ -1,0 +1,4 @@
+name = "VFPRestClient"
+type = "prg"
+repo = "https://raw.githubusercontent.com/Irwin1985/VFPRestClient/master/vfprestclient.prg"
+version = "0.0.1"
